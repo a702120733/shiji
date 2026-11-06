@@ -143,6 +143,26 @@ p {
   align-items:center;
   flex-wrap:wrap
 }
+.connection-status {
+  color:var(--muted);
+  font-size:13px
+}
+.manual-import {
+  margin-top:18px;
+  border-top:1px solid var(--line);
+  padding-top:14px
+}
+.manual-import summary {
+  cursor:pointer;
+  color:var(--muted);
+  font-size:13px
+}
+.manual-import p {
+  margin:10px 0
+}
+.manual-import .import-row {
+  margin-top:8px
+}
 button {
   font:inherit;
   cursor:pointer;

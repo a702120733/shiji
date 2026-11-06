@@ -20,6 +20,7 @@ from urllib.parse import urlsplit, unquote, parse_qs
 from library import parse_json
 import library as library_module
 from analysis_engine import analyze_note, codex_binary
+from chrome_bookmarks import current_profile, read_bookmarks
 from local_content import parse_chrome_export, validate_product
 
 # library-server.py is kept under its historical name for the existing viewer.
@@ -34,7 +35,7 @@ PROFILE_ID = re.compile(r'^[0-9a-f]{24}$', re.I)
 SOURCES = ('liked', 'saved', 'following')
 PRIVATE_FILES = {'manifest.json', 'authors.json', 'display-order.json', 'media-dimensions.json',
                  'downloads.json', 'metadata.json', 'analysis.json', 'review.json', 'config.json',
-                 'following-list.json', 'following-orders.json', 'bookmarks.json', 'products.json'}
+                 'following-list.json', 'following-orders.json', 'bookmarks.json', 'bookmarks-access.json', 'products.json'}
 
 
 def utc_now():
@@ -78,6 +79,7 @@ class ImportManager:
         self.root = data_dir.resolve()
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.config_path = self.root / 'config.json'
+        self.bookmarks_access_path = self.root / 'bookmarks-access.json'
         self.lock = threading.RLock()
         self.process = None
         self.cancel_requested = False
@@ -103,7 +105,30 @@ class ImportManager:
         rows = parse_chrome_export(content)
         with self.lock:
             write_private(self.root / 'bookmarks.json', rows)
+            self.bookmarks_access_path.unlink(missing_ok=True)
         return {'imported': len(rows)}
+
+    def bookmarks_access(self):
+        access = read_json(self.bookmarks_access_path, {})
+        return {'authorized': bool(access.get('profile')), 'profile': access.get('profile', ''),
+                'last_sync_at': access.get('last_sync_at')}
+
+    def sync_chrome_bookmarks(self, authorize=False):
+        access = read_json(self.bookmarks_access_path, {})
+        profile = current_profile() if authorize else access.get('profile')
+        if not profile:
+            raise ValueError('请先授权读取当前 Chrome 配置的书签')
+        result = read_bookmarks(profile)
+        with self.lock:
+            unchanged = (access.get('profile') == profile and access.get('fingerprint') == result['fingerprint']
+                         and (self.root / 'bookmarks.json').is_file())
+            if not unchanged:
+                write_private(self.root / 'bookmarks.json', result['rows'])
+            write_private(self.bookmarks_access_path, {'profile': profile, 'fingerprint': result['fingerprint'],
+                                                       'authorized_at': access.get('authorized_at') if access.get('profile') == profile else utc_now(),
+                                                       'last_sync_at': utc_now()})
+        return {'imported': len(result['rows']), 'skipped': result['skipped'], 'profile': profile,
+                'unchanged': unchanged}
 
     def save_product(self, payload):
         product = validate_product(payload)
@@ -420,6 +445,8 @@ class AppHandler(library_server.LibraryHandler):
             return self.json_response(self.server.import_manager.status())
         if path == '/api/bookmarks':
             return self.json_response(read_json(self.server.import_manager.root / 'bookmarks.json', []))
+        if path == '/api/bookmarks/access':
+            return self.json_response(self.server.import_manager.bookmarks_access())
         if path == '/api/products':
             return self.json_response(read_json(self.server.import_manager.root / 'products.json', []))
         if path in ('/api/groups', '/api/trash') and parse_qs(urlsplit(self.path).query).get('source') == ['saved']:
@@ -531,7 +558,8 @@ class AppHandler(library_server.LibraryHandler):
                 return self.json_response({'error': 'Chrome 无法打开'}, 500)
             return self.json_response({'opened': True})
         if path not in ('/api/settings', '/api/connect', '/api/import/start', '/api/import/cancel',
-                        '/api/bookmarks/import', '/api/products/save', '/api/products/remove'):
+                        '/api/bookmarks/import', '/api/bookmarks/connect', '/api/bookmarks/sync',
+                        '/api/products/save', '/api/products/remove'):
             return super().do_POST()
         if self.headers.get_content_type() != 'application/json':
             return self.json_response({'error': '需要JSON格式'}, 415)
@@ -553,6 +581,10 @@ class AppHandler(library_server.LibraryHandler):
                 result = self.server.import_manager.cancel()
             elif path == '/api/bookmarks/import':
                 result = self.server.import_manager.import_bookmarks(payload.get('content'))
+            elif path == '/api/bookmarks/connect':
+                result = self.server.import_manager.sync_chrome_bookmarks(authorize=True)
+            elif path == '/api/bookmarks/sync':
+                result = self.server.import_manager.sync_chrome_bookmarks()
             elif path == '/api/products/save':
                 result = self.server.import_manager.save_product(payload)
             else:

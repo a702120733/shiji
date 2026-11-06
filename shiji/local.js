@@ -44,6 +44,8 @@
   if (page === 'bookmarks') {
     const file = document.querySelector('#bookmark-file');
     const importButton = document.querySelector('#import-bookmarks');
+    const connectButton = document.querySelector('#connect-bookmarks');
+    const connection = document.querySelector('#chrome-connection');
     const folderFilter = document.querySelector('#folder-filter');
     const search = document.querySelector('#search');
     const groups = document.querySelector('#bookmark-groups');
@@ -101,6 +103,24 @@
       folderFilter.value = selected;
       render();
     };
+    const syncChrome = async authorize => {
+      connectButton.disabled = true;
+      notice(authorize ? '正在读取当前 Chrome 配置并导入…' : '正在同步 Chrome 书签…');
+      try {
+        const result = await request(authorize ? '/api/bookmarks/connect' : '/api/bookmarks/sync', {});
+        await load();
+        connection.dataset.authorized = 'true';
+        connection.textContent = `已连接 ${result.profile}`;
+        connectButton.textContent = '立即同步';
+        notice(result.unchanged ? `已是最新，共 ${result.imported} 条书签` :
+          `已从 ${result.profile} 导入 ${result.imported} 条书签${result.skipped ? `，跳过 ${result.skipped} 条非网页链接` : ''}`);
+      } catch (error) {
+        await load().catch(() => {});
+        notice(error.message, true);
+      }
+      finally { connectButton.disabled = false; }
+    };
+    connectButton.addEventListener('click', () => syncChrome(connection.dataset.authorized !== 'true'));
     importButton.addEventListener('click', async () => {
       if (!file.files?.length) return notice('请先选择 Chrome 导出的书签 HTML', true);
       if (file.files[0].size > 10_000_000) return notice('书签文件不能超过 10 MB', true);
@@ -109,13 +129,26 @@
       try {
         const result = await request('/api/bookmarks/import', {content: await file.files[0].text()});
         await load();
+        connection.dataset.authorized = 'false';
+        connection.textContent = '尚未授权';
+        connectButton.textContent = '授权读取并自动导入';
         notice(`已导入 ${result.imported} 条书签`);
       } catch (error) { notice(error.message, true); }
       finally { importButton.disabled = false; }
     });
     folderFilter.addEventListener('change', render);
     search.addEventListener('input', render);
-    load().catch(error => notice(error.message, true));
+    request('/api/bookmarks/access').then(async access => {
+      connection.dataset.authorized = String(access.authorized);
+      if (access.authorized) {
+        connection.textContent = `已连接 ${access.profile}`;
+        connectButton.textContent = '立即同步';
+        await syncChrome(false);
+      } else await load();
+    }).catch(async error => {
+      notice(error.message, true);
+      await load().catch(() => {});
+    });
   }
 
   if (page === 'products') {
