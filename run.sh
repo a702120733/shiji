@@ -21,4 +21,9 @@ if [[ ! -f "$runtime/.deps-ready" ]]; then
   fi
   touch "$runtime/.deps-ready"
 fi
-exec "$runtime/bin/python" shiji/app.py --data-dir "${SHIJI_DATA_DIR:-$PWD/data}" --port "${SHIJI_PORT:-8879}"
+if [[ "$(uname -s)" == Darwin ]]; then
+  default_data="$HOME/Library/Application Support/Shiji/data"
+else
+  default_data="$PWD/data"
+fi
+exec "$runtime/bin/python" shiji/app.py --data-dir "${SHIJI_DATA_DIR:-$default_data}" --port "${SHIJI_PORT:-8879}"

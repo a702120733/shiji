@@ -18,7 +18,9 @@
 ./run.sh
 ```
 
-打开 `http://127.0.0.1:8879/import`。本地数据默认写入仓库内被 Git 忽略的 `data/`；可通过 `SHIJI_DATA_DIR=/绝对路径 ./run.sh` 和 `SHIJI_PORT=端口号 ./run.sh` 调整。服务只监听 `127.0.0.1`，默认端口不会占用现有本机资料库的 8765。
+打开 `http://127.0.0.1:8879/import`。macOS 上本地数据默认写入 `~/Library/Application Support/Shiji/data/`，可通过 `SHIJI_DATA_DIR=/绝对路径 ./run.sh` 和 `SHIJI_PORT=端口号 ./run.sh` 调整。服务只监听 `127.0.0.1`，默认端口不会占用现有本机资料库的 8765。
+
+如需登录后自动启动并在意外退出后重启，在 macOS 上运行 `./.venv/bin/python scripts/service.py install`；移除登录项运行 `./.venv/bin/python scripts/service.py uninstall`。安装时会把运行代码和虚拟环境复制到 `~/Library/Application Support/Shiji/`，避免 macOS 登录项无法读取 Documents 下的项目；数据和日志也保存在该目录。更新项目代码后重新运行 `install` 即可同步运行副本。启用前请先停止手动运行的 `./run.sh`，避免端口冲突。
 
 点击“打开小红书官方网页”是在用户自己的 Chrome 中完成登录，不是小红书官方 OAuth 授权。点击“验证连接”会通过 OpenCLI 在后台读取当前登录账号 ID。首次导入建议每类先读 5 条，确认效果再扩大范围。用户可随时取消，已完成内容保留。
 
