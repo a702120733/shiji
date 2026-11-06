@@ -41,6 +41,19 @@ else:
 print(json.dumps(result, ensure_ascii=False))
 '''
 
+FAKE_CODEX = r'''#!/usr/bin/env python3
+import json, pathlib, sys
+args = sys.argv[1:]
+context = json.loads(sys.stdin.read().split('EVIDENCE_INPUT_JSON=', 1)[1])
+result = {'category':'视觉设计','subcategory':'界面','tags':['示例'],'summary':'界面示例 · 视觉结构 · 素材归档',
+          'key_points':['正文提到可读的测试内容'],'takeaways':[],'limitations':[],
+          'text_evidence':'正文包含可读的测试内容',
+          'image_evidence':[{'path':path,'observation':'可见示例图片'} for path in context['images']],
+          'frame_evidence':[{'path':path,'observation':'可见视频采样画面'} for path in context['video_frame_sheets']],
+          'transcript_evidence':[{'path':item['path'],'observation':'转写包含语音内容'} for item in context['transcripts']]}
+pathlib.Path(args[args.index('--output-last-message')+1]).write_text(json.dumps(result, ensure_ascii=False))
+'''
+
 
 class ImportFlowTest(unittest.TestCase):
     def test_login_capture_prepare_render_preserve_data(self):
@@ -55,7 +68,7 @@ class ImportFlowTest(unittest.TestCase):
                    'PYTHONPYCACHEPREFIX': str(root / 'pycache')}
             with patch.dict(os.environ, env):
                 manager = ImportManager(root / 'data')
-                manager.save_settings({'sources': ['liked', 'saved', 'following'], 'limit': 1})
+                manager.save_settings({'sources': ['liked', 'saved', 'following'], 'limit': 1, 'auto_analyze': False})
                 account = manager.connect()
                 self.assertEqual(account['profile_id'], '1234567890abcdef12345678')
                 manager.start()
@@ -75,6 +88,34 @@ class ImportFlowTest(unittest.TestCase):
                 self.assertTrue((root / 'data/liked/notes/abcdefabcdefabcdefabcdef/media/image.png').is_file())
                 self.assertNotIn('TEST_ONLY', (root / 'data/liked/index.html').read_text(encoding='utf-8'))
                 self.assertEqual((root / 'data/config.json').stat().st_mode & 0o777, 0o600)
+
+    def test_auto_classification_uses_prepared_content(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            bin_dir = root / 'bin'
+            bin_dir.mkdir()
+            for name, source in (('opencli', FAKE_OPENCLI), ('codex', FAKE_CODEX)):
+                executable = bin_dir / name
+                executable.write_text(source, encoding='utf-8')
+                executable.chmod(0o755)
+            env = {'HOME': str(root), 'PATH': str(bin_dir) + os.pathsep + os.environ['PATH'],
+                   'PYTHONPYCACHEPREFIX': str(root / 'pycache')}
+            with patch.dict(os.environ, env):
+                manager = ImportManager(root / 'data')
+                manager.save_settings({'sources': ['liked'], 'limit': 1, 'auto_analyze': True})
+                manager.connect()
+                manager.start()
+                for _ in range(300):
+                    if manager.status()['job']['state'] != 'running':
+                        break
+                    time.sleep(.1)
+                status = manager.status()
+                self.assertEqual(status['job']['state'], 'complete', status['job']['error'])
+                self.assertEqual(status['libraries']['liked']['pending'], 0)
+                self.assertEqual(status['libraries']['liked']['categories'], {'视觉设计': 1})
+                analysis = json.loads((root / 'data/liked/notes/abcdefabcdefabcdefabcdef/analysis.json').read_text())
+                self.assertEqual(analysis['coverage']['status'], 'complete')
+                self.assertEqual(len(analysis['coverage']['reviewed_images']), 1)
 
     def test_reject_empty_and_invalid_settings(self):
         with tempfile.TemporaryDirectory() as temp:

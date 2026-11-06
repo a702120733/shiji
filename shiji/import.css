@@ -73,6 +73,12 @@ a {
   flex-direction:column;
   gap:5px
 }
+.sidebar [hidden] {
+  display:none!important
+}
+.result-links [hidden] {
+  display:none!important
+}
 .sidebar nav a {
   display:flex;
   align-items:center;
@@ -129,6 +135,28 @@ a {
   color:var(--muted);
   font-size:12px;
   line-height:1.6
+}
+.category-links {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  margin-top:12px
+}
+.category-links a {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:7px;
+  color:var(--muted);
+  font-size:12px
+}
+.category-links a:hover {
+  background:white;
+  color:var(--ink)
+}
+.category-links small {
+  color:var(--muted)
 }
 .sidebar-spacer {
   flex:1
@@ -419,6 +447,26 @@ main {
   display:flex;
   align-items:center;
   gap:12px
+}
+.analysis-choice {
+  cursor:pointer
+}
+.analysis-choice input {
+  flex:none;
+  accent-color:var(--red)
+}
+.analysis-choice>span:last-child {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  flex:1
+}
+.other-source {
+  margin:16px 0 0!important
+}
+.other-source a {
+  color:var(--red);
+  font-weight:600
 }
 .ai-icon {
   background:#f3f2ee;
@@ -837,6 +885,9 @@ main {
     font-size:12px
   }
   .sidebar-divider,.sidebar-heading,.sidebar-note,.sidebar-spacer,.profile {
+    display:none
+  }
+  #sidebar-categories {
     display:none
   }
   .topbar {

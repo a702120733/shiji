@@ -24,7 +24,8 @@ def install():
     RUNTIME.mkdir(parents=True, exist_ok=True)
     (RUNTIME / 'data').mkdir(exist_ok=True)
     shutil.copytree(ROOT / 'shiji', RUNTIME / 'shiji', dirs_exist_ok=True)
-    shutil.copytree(ROOT / '.venv', RUNTIME / '.venv', dirs_exist_ok=True, symlinks=True)
+    if not (RUNTIME / '.venv' / 'bin' / 'python').is_file():
+        shutil.copytree(ROOT / '.venv', RUNTIME / '.venv', symlinks=True)
     shutil.copy2(ROOT / 'run.sh', RUNTIME / 'run.sh')
     AGENT.parent.mkdir(parents=True, exist_ok=True)
     log = RUNTIME / 'data' / 'server.log'

@@ -258,7 +258,9 @@
       const response = await fetch('/api/groups' + (location.pathname.startsWith('/saved/') ? '?source=saved' : ''), {cache: 'no-store'});
       if (!response.ok) throw new Error('请使用资料库本机服务以保存分组');
       const result = await response.json(); state = result[scope]; loaded = true;
-      render(filters.querySelector('[aria-pressed="true"]')?.dataset.groupId);
+      const initialCategory = new URLSearchParams(location.search).get('category');
+      const initialGroup = initialCategory && resolvedGroups().find(group => group.name === initialCategory);
+      render(initialGroup?.id || filters.querySelector('[aria-pressed="true"]')?.dataset.groupId);
     } catch (error) { notify(error.message || '分组读取失败，请刷新重试', true); }
   }
   groups = resolvedGroups();

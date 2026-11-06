@@ -18,6 +18,8 @@ from pathlib import Path
 from urllib.parse import urlsplit, unquote, parse_qs
 
 from library import parse_json
+import library as library_module
+from analysis_engine import analyze_note, codex_binary
 from local_content import parse_chrome_export, validate_product
 
 # library-server.py is kept under its historical name for the existing viewer.
@@ -82,14 +84,16 @@ class ImportManager:
         self.job = {'state': 'idle', 'phase': '', 'events': [], 'counts': {}, 'error': '', 'started_at': None}
 
     def config(self):
-        return read_json(self.config_path, {'sources': ['liked'], 'limit': 100, 'profile_id': '', 'verified_at': None})
+        return read_json(self.config_path, {'sources': ['liked'], 'limit': 100, 'auto_analyze': True,
+                                            'profile_id': '', 'verified_at': None})
 
     def status(self):
         with self.lock:
             config = self.config()
             return {'config': config, 'job': json.loads(json.dumps(self.job)),
                     'libraries': {source: {'visible': read_json(self.root / source / 'render-status.json', {}).get('visible', 0),
-                                           'pending': read_json(self.root / source / 'render-status.json', {}).get('analysis_pending', 0)}
+                                           'pending': read_json(self.root / source / 'render-status.json', {}).get('analysis_pending', 0),
+                                           'categories': read_json(self.root / source / 'render-status.json', {}).get('categories', {})}
                                   for source in ('liked', 'saved')},
                     'following_count': sum(row.get('sort') == '综合排序' for row in read_json(self.root / 'following-list.json', [])),
                     'bookmarks_count': len(read_json(self.root / 'bookmarks.json', [])),
@@ -123,15 +127,18 @@ class ImportManager:
     def save_settings(self, payload):
         sources = payload.get('sources')
         limit = payload.get('limit', 100)
+        auto_analyze = payload.get('auto_analyze', True)
         if not isinstance(sources, list) or not sources or len(sources) != len(set(sources)) or any(x not in SOURCES for x in sources):
             raise ValueError('请选择至少一种可导入内容')
         if type(limit) is not int or not 1 <= limit <= 1000:
             raise ValueError('每类最多导入 1–1000 条')
+        if type(auto_analyze) is not bool:
+            raise ValueError('自动归类设置无效')
         with self.lock:
             if self.job['state'] == 'running':
                 raise ValueError('导入正在运行，无法修改范围')
             config = self.config()
-            config.update(sources=sources, limit=limit)
+            config.update(sources=sources, limit=limit, auto_analyze=auto_analyze)
             write_private(self.config_path, config)
             return config
 
@@ -174,6 +181,8 @@ class ImportManager:
                 raise ValueError('已有导入任务正在运行')
             if not shutil.which('opencli'):
                 raise RuntimeError('OpenCLI 不可用')
+            if config.get('auto_analyze', True) and any(source in ('liked', 'saved') for source in config['sources']) and not codex_binary():
+                raise RuntimeError('自动归类需要已登录的 Codex CLI；安装后重试，或在导入设置中关闭自动归类')
             self.cancel_requested = False
             self.job = {'state': 'running', 'phase': '准备导入', 'events': [], 'counts': {},
                         'error': '', 'started_at': utc_now(), 'finished_at': None}
@@ -204,6 +213,9 @@ class ImportManager:
                     self.job['counts'][f'{source}_pending'] = detail.get('pending', 0)
                 if event == 'following_saved':
                     self.job['counts']['following_visible'] = detail.get('count', 0)
+                if event in ('analyzed', 'analysis_partial', 'analysis_failed'):
+                    key = f'{source}_{event}'
+                    self.job['counts'][key] = self.job['counts'].get(key, 0) + 1
 
     def _command(self, source, stage, args):
         if self.cancel_requested:
@@ -282,6 +294,58 @@ class ImportManager:
         self._event('following', '读取关注名单', {'event': 'following_saved', 'count': count,
                                             'message': f'三种顺序各 {count} 项；主页身份未核验的项保留待核实'})
 
+    def _analyze_source(self, root, source):
+        executable = codex_binary()
+        if not executable:
+            self._event(source, '自动归类', {'event': 'analysis_failed', 'message': 'Codex CLI 不可用，内容保留待分析'})
+            return
+        manifest = library_module.load(root / 'manifest.json', {'notes': {}})
+        latest = library_module.load(root / 'latest-list.json', [])
+        ordered = list(dict.fromkeys([row.get('id') for row in latest if isinstance(row, dict)] + list(manifest['notes'])))
+        existing = [name for name in library_module.load(root / 'render-status.json', {}).get('categories', {}) if name != '待分析']
+        streak = 0
+        for note_id in ordered:
+            if self.cancel_requested:
+                raise InterruptedError('用户取消了导入，已保存已完成的内容')
+            if not isinstance(note_id, str) or not PROFILE_ID.fullmatch(note_id):
+                continue
+            directory = root / 'notes' / note_id
+            review = library_module.load(directory / 'review.json')
+            if not review:
+                continue
+            current = library_module.load(directory / 'analysis.json')
+            try:
+                library_module.check_current(review, manifest['notes'].get(note_id, {}), root)
+                if current:
+                    try:
+                        library_module.check(current, review, root)
+                        continue
+                    except ValueError:
+                        pass
+                self._event(source, '自动归类', {'message': f'正在分析笔记 {note_id}'})
+                def set_process(process):
+                    with self.lock:
+                        self.process = process
+                analysis = analyze_note(root, review, existing, executable, on_process=set_process,
+                                        cancelled=lambda: self.cancel_requested)
+                library_module.save(directory / 'analysis.json', analysis)
+                if analysis['category'] not in existing:
+                    existing.append(analysis['category'])
+                event = 'analyzed' if analysis['coverage']['status'] == 'complete' else 'analysis_partial'
+                self._event(source, '自动归类', {'event': event, 'note_id': note_id,
+                                            'category': analysis['category'],
+                                            'message': f'{analysis["category"]} · {analysis["coverage"]["status"]}'})
+                streak = 0
+            except InterruptedError:
+                raise
+            except Exception as exc:
+                streak += 1
+                self._event(source, '自动归类', {'event': 'analysis_failed', 'note_id': note_id,
+                                            'message': redact(str(exc))[:300]})
+                if streak >= 3 or any(term in str(exc).lower() for term in ('not logged in', '401 unauthorized', 'quota exceeded')):
+                    self._event(source, '自动归类', {'message': '连续分析失败，后续内容保留待分析'})
+                    break
+
     def _run(self, config):
         try:
             for source in config['sources']:
@@ -310,9 +374,15 @@ class ImportManager:
                     if result['boundary_missing']:
                         raise RuntimeError('读取到 1000 条仍未遇到上次列表边界；已保留旧同步基线')
                 self._command(source, '图像与视频预处理', command + ['prepare', '--root', str(root)])
+                if config.get('auto_analyze', True):
+                    self._analyze_source(root, source)
                 self._command(source, '生成资料库', command + ['render', '--root', str(root), '--source', source])
             with self.lock:
-                self.job.update(state='complete', phase='导入完成', finished_at=utc_now())
+                incomplete = any(key.endswith(('_analysis_failed', '_analysis_partial')) and value
+                                 for key, value in self.job['counts'].items())
+                self.job.update(state='partial' if incomplete else 'complete',
+                                phase='导入完成，部分内容待核实' if incomplete else '导入完成',
+                                finished_at=utc_now())
         except (Exception, InterruptedError) as exc:
             with self.lock:
                 self.job.update(state='cancelled' if isinstance(exc, InterruptedError) else 'failed',

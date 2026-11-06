@@ -67,13 +67,56 @@
       input.checked = config.sources.includes(input.value);
     });
     $('limit').value = config.limit;
+    $('auto-analyze').checked = config.auto_analyze !== false;
     $('profile-label').textContent = config.profile_id ? `已验证账号 ${config.profile_id.slice(0, 8)}…` : '等待连接小红书';
     selectionChanged();
   }
 
+  function updateNavigation(value) {
+    const amounts = {
+      liked: value.libraries?.liked?.visible || 0,
+      saved: value.libraries?.saved?.visible || 0,
+      following: value.following_count || 0,
+      bookmarks: value.bookmarks_count || 0,
+      products: value.products_count || 0,
+    };
+    amounts.notes = amounts.liked + amounts.saved;
+    document.querySelector('[data-library-link="notes"]').href = amounts.liked ? '/index.html' : '/saved.html';
+    document.querySelectorAll('[data-library-link]').forEach(link => {
+      link.hidden = !amounts[link.dataset.libraryLink];
+    });
+    document.querySelector('[data-nav-gap]').hidden = ![amounts.notes, amounts.following].some(Boolean);
+    document.querySelector('[data-chrome-gap]').hidden = !(amounts.bookmarks || amounts.products);
+    document.querySelectorAll('[data-result-source]').forEach(link => {
+      link.hidden = !amounts[link.dataset.resultSource];
+    });
+    $('liked-count').textContent = amounts.liked || '';
+    $('saved-count').textContent = amounts.saved || '';
+    $('following-count').textContent = amounts.following || '';
+    const categories = [];
+    for (const source of ['liked', 'saved']) {
+      for (const [name, amount] of Object.entries(value.libraries?.[source]?.categories || {})) {
+        if (name !== '待分析' && amount > 0) categories.push({source, name, amount});
+      }
+    }
+    categories.sort((a, b) => b.amount - a.amount || a.name.localeCompare(b.name));
+    const list = $('category-links');
+    list.replaceChildren(...categories.slice(0, 15).map(item => {
+      const link = document.createElement('a');
+      link.href = `/${item.source}/index.html?category=${encodeURIComponent(item.name)}`;
+      const label = document.createElement('span');
+      label.textContent = `${item.source === 'liked' ? '♡' : '▯'} ${item.name}`;
+      const count = document.createElement('small');
+      count.textContent = item.amount;
+      link.append(label, count);
+      return link;
+    }));
+    $('sidebar-categories').hidden = categories.length === 0;
+  }
+
   function renderJob(job) {
     $('progress-phase').textContent = job.phase || '准备导入';
-    $('job-state').textContent = {running:'进行中', complete:'已完成', failed:'已停止', cancelled:'已取消'}[job.state] || '等待';
+    $('job-state').textContent = {running:'进行中', complete:'已完成', partial:'部分待核实', failed:'已停止', cancelled:'已取消'}[job.state] || '等待';
     if (job.state === 'running') {
       $('cancel-import').hidden = false;
       $('retry-import').hidden = true;
@@ -92,7 +135,8 @@
       return row;
     }));
     const pending = ['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_pending'] || 0), 0);
-    $('analysis-status').textContent = `已呈现 ${['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_visible'] || 0), 0)} 条笔记；${pending} 条待分析或补采。`;
+    const analyzed = ['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_analyzed'] || 0), 0);
+    $('analysis-status').textContent = `本次自动归类 ${analyzed} 条；已呈现 ${['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_visible'] || 0), 0)} 条；${pending} 条待分析或补采。`;
     $('event-log').replaceChildren(...(job.events || []).slice(-16).reverse().map(event => {
       const li = document.createElement('li');
       const detail = event.detail;
@@ -106,10 +150,11 @@
       $('retry-import').hidden = false;
       $('progress-bar').style.animation = 'none';
     }
-    if (job.state === 'complete') {
+    if (job.state === 'complete' || job.state === 'partial') {
       const total = ['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_visible'] || 0), 0);
       const following = job.counts?.following_visible || 0;
       $('done-summary').textContent = `已生成 ${total} 条笔记、${following} 位关注账号的本机资料；${pending} 条笔记仍需阅读分析或补采。`;
+      $('done-title').textContent = job.state === 'partial' ? '导入已保存，部分内容待核实' : '导入已保存到本机';
       show('done');
     }
   }
@@ -117,6 +162,7 @@
   async function poll() {
     try {
       status = await request('/api/status');
+      updateNavigation(status);
       renderJob(status.job);
     } catch (error) { notice(error.message); }
   }
@@ -125,7 +171,7 @@
   $('to-connect').addEventListener('click', async () => {
     notice('');
     try {
-      const config = await request('/api/settings', {sources: selectedSources(), limit: Number($('limit').value)});
+      const config = await request('/api/settings', {sources: selectedSources(), limit: Number($('limit').value), auto_analyze: $('auto-analyze').checked});
       status.config = config;
       selectionChanged();
       show('connect');
@@ -156,12 +202,10 @@
   request('/api/status').then(value => {
     status = value;
     syncSettings(value.config);
-    $('liked-count').textContent = value.libraries.liked.visible || '';
-    $('saved-count').textContent = value.libraries.saved.visible || '';
-    $('following-count').textContent = value.following_count || '';
+    updateNavigation(value);
     $('import-type').textContent = value.libraries.liked.visible || value.libraries.saved.visible || value.following_count ? '增量导入' : '首次导入';
     if (value.job.state === 'running' || value.job.state === 'failed' || value.job.state === 'cancelled') show('progress');
-    else if (value.job.state === 'complete') { show('done'); renderJob(value.job); }
+    else if (value.job.state === 'complete' || value.job.state === 'partial') { show('done'); renderJob(value.job); }
     else show('settings');
   }).catch(error => notice(error.message));
 })();
