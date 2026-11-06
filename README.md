@@ -1,6 +1,10 @@
 # 拾集 Shiji
 
-把自己在小红书的点赞、收藏和关注整理到本机。首页采用 [Figma 设计稿](https://www.figma.com/design/HkwSfasAI0PIEikxisf2Mq/)中的设置导入、连接账号、采集进度三个页面。项目代码可公开；个人资料库、签名链接和浏览器登录状态不属于开源仓库。
+## 项目介绍
+
+拾集是一个本地运行的个人资料库，把自己在小红书的点赞、收藏、关注，以及 Chrome 收藏夹整理成可浏览、搜索和分组的内容。笔记可保存原图与视频；开启分析后，还能按实际读取到的正文和媒体生成分类与简短摘要。导入界面参考了 [Figma 设计稿](https://www.figma.com/design/HkwSfasAI0PIEikxisf2Mq/)中的设置导入、连接账号、采集进度三个页面。
+
+项目代码开放，导入的数据留在使用者自己的电脑上。仓库不包含个人资料库、浏览器登录状态或临时签名链接。
 
 ## 当前能力
 
@@ -10,15 +14,24 @@
 - Chrome 收藏夹可在页面一次授权本机读取当前 Chrome 配置后自动导入；再次打开书签页会自动同步。保留原文件夹层级并按一级、二级、三级展示。HTML 文件导入作为备用方式；个人产品可手动添加或移除网址。
 - 导入页默认勾选“自动分类与总结”，使用当前用户已登录的 Codex CLI 逐条读取正文、全部原图、视频抽帧和转写，再写入有覆盖记录的 `analysis.json`。用户可关闭该选项。模型失败、素材缺失或证据不足时保留“待分析”或“部分”标记，不凭标题补全结论。
 
-## 本机运行
+## 快速开始
 
-适用环境：macOS、Python 3.12、Chrome、已连接 Chrome 的 OpenCLI 扩展，以及 `ffmpeg`/`ffprobe`。当前适配器按本机 OpenCLI 1.8.6 的接口编写；可先运行 `npm install -g @jackwener/opencli@1.8.6`，再按照 OpenCLI 的扩展连接步骤完成浏览器授权，并在 Chrome 中自行登录小红书。拾集不会安装扩展或打开浏览器调试端口。首次运行会创建 `.venv` 并安装 Python 依赖。Whisper 模型首次使用时另行下载。
+适用环境：macOS、Python 3.12、Chrome、`ffmpeg`/`ffprobe`，以及连接到 Chrome 的 OpenCLI 扩展。当前适配器按 OpenCLI 1.8.6 的接口编写；可先运行 `npm install -g @jackwener/opencli@1.8.6`，再按照 OpenCLI 的扩展连接步骤完成浏览器授权。拾集不会安装扩展或打开浏览器调试端口。首次运行会创建 `.venv` 并安装 Python 依赖；首次使用视频转写时还会下载 Whisper 模型。
 
 ```bash
+git clone https://github.com/a702120733/shiji.git
+cd shiji
 ./run.sh
 ```
 
-打开 `http://127.0.0.1:8879/import`。macOS 上本地数据默认写入 `~/Library/Application Support/Shiji/data/`，可通过 `SHIJI_DATA_DIR=/绝对路径 ./run.sh` 和 `SHIJI_PORT=端口号 ./run.sh` 调整。服务只监听 `127.0.0.1`，默认端口不会占用现有本机资料库的 8765。
+## 使用说明
+
+1. 打开 `http://127.0.0.1:8879/import`，选择要导入的点赞、收藏或关注，以及每类读取上限。首次建议选择 100 条。
+2. 在自己的 Chrome 中登录小红书，在导入页点击“验证连接”。验证只读取当前登录账号，不需要在拾集里输入密码。
+3. 按需开启“自动分类与总结”，然后开始导入。在页面查看采集和分析进度；遇到验证码、登录或访问限制时，已完成的内容会保留。
+4. 导入完成后浏览资料库，使用搜索、分组和媒体查看功能。需要整合 Chrome 收藏夹时，打开 `/bookmarks.html` 并点击“授权读取并自动导入”；个人产品链接在 `/products.html` 管理。
+
+macOS 上本地数据默认写入 `~/Library/Application Support/Shiji/data/`。可通过 `SHIJI_DATA_DIR=/绝对路径 ./run.sh` 和 `SHIJI_PORT=端口号 ./run.sh` 调整。服务只监听 `127.0.0.1`，默认端口不会占用现有本机资料库的 8765。
 
 如需登录后自动启动并在意外退出后重启，在 macOS 上运行 `./.venv/bin/python scripts/service.py install`；移除登录项运行 `./.venv/bin/python scripts/service.py uninstall`。安装时会把运行代码和虚拟环境复制到 `~/Library/Application Support/Shiji/`，避免 macOS 登录项无法读取 Documents 下的项目；数据和日志也保存在该目录。更新项目代码后重新运行 `install` 即可同步运行副本。启用前请先停止手动运行的 `./run.sh`，避免端口冲突。
 
