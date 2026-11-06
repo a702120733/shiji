@@ -359,7 +359,7 @@ class LibraryHandler(SimpleHTTPRequestHandler):
                 return self.json_response(self.server.trash_store.read())
             except (ValueError, OSError):
                 return self.json_response({'error': '回收站记录无法读取，请保留文件并检查格式'}, 500)
-        if path in ('/latest-list.json', '/trash.json', '/group-settings.json') or re.fullmatch(r'/notes/[0-9a-f]{24}/raw\.json', path):
+        if path in ('/latest-list.json', '/trash.json', '/group-settings.json', '/account-profile.json') or re.fullmatch(r'/notes/[0-9a-f]{24}/raw\.json', path):
             return self.json_response({'error': '私有采集记录不在网页中公开'}, 404)
         match = re.fullmatch(r'/open-note/([0-9a-f]{24})', path)
         if match:

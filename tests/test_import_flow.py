@@ -62,7 +62,7 @@ class ImportFlowTest(unittest.TestCase):
             bin_dir = root / 'bin'
             bin_dir.mkdir()
             executable = bin_dir / 'opencli'
-            executable.write_text(FAKE_OPENCLI, encoding='utf-8')
+            executable.write_text(FAKE_OPENCLI.replace('#!/usr/bin/env python3', f'#!{sys.executable}', 1), encoding='utf-8')
             executable.chmod(0o755)
             env = {'HOME': str(root), 'PATH': str(bin_dir) + os.pathsep + os.environ['PATH'],
                    'PYTHONPYCACHEPREFIX': str(root / 'pycache')}
@@ -96,7 +96,7 @@ class ImportFlowTest(unittest.TestCase):
             bin_dir.mkdir()
             for name, source in (('opencli', FAKE_OPENCLI), ('codex', FAKE_CODEX)):
                 executable = bin_dir / name
-                executable.write_text(source, encoding='utf-8')
+                executable.write_text(source.replace('#!/usr/bin/env python3', f'#!{sys.executable}', 1), encoding='utf-8')
                 executable.chmod(0o755)
             env = {'HOME': str(root), 'PATH': str(bin_dir) + os.pathsep + os.environ['PATH'],
                    'PYTHONPYCACHEPREFIX': str(root / 'pycache')}

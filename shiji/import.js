@@ -29,7 +29,9 @@
 
   function selectionChanged() {
     const chosen = selectedSources();
-    $('selection-note').textContent = `已选择 ${chosen.length} 项内容 · 下一步将在小红书网页完成登录`;
+    $('selection-note').textContent = status?.demo_mode
+      ? `已选择 ${chosen.length} 项内容 · 下一步模拟登录与导入`
+      : `已选择 ${chosen.length} 项内容 · 下一步将在小红书网页完成登录`;
     $('permission-list').replaceChildren(...chosen.map(source => {
       const row = document.createElement('div');
       row.className = 'permission';
@@ -55,6 +57,23 @@
       progress: ['COLLECTING THE THINGS YOU LOVE', '你的灵感，正在归位', '正在读取可访问内容并保存到这台设备。'],
       done: ['YOUR PERSONAL INSPIRATION ARCHIVE', '整理完成，随时回来。', '资料保留在本机，可继续增量导入。'],
     }[stage];
+    if (status?.demo_mode && stage === 'settings') {
+      heading[1] = '检查导入流程，不读取个人资料。';
+      heading[2] = '选择内容范围后，模拟连接、采集和整理步骤。';
+    }
+    if (status?.demo_mode && stage === 'connect') {
+      heading[1] = '模拟连接小红书';
+      heading[2] = '此测试环境不会访问你的真实账号。';
+    }
+    if (status?.demo_mode && stage === 'done') heading[1] = '流程测试完成';
+    if (status?.account_test && stage === 'settings') {
+      heading[1] = '添加另一个小红书账号';
+      heading[2] = '先选择导入范围，再在 Chrome 中切换到新账号并验证。';
+    }
+    if (status?.account_test && stage === 'connect') {
+      heading[1] = '验证新账号';
+      heading[2] = '请先在 Chrome 的小红书网页登录要添加的账号。';
+    }
     $('eyebrow').textContent = heading[0];
     $('page-title').textContent = heading[1];
     $('page-description').textContent = heading[2];
@@ -66,9 +85,9 @@
     document.querySelectorAll('input[name="source"]').forEach(input => {
       input.checked = config.sources.includes(input.value);
     });
-    $('limit').value = config.limit;
+    $('limit').value = [100, 200, 500, 1000].includes(config.limit) ? String(config.limit) : '100';
     $('auto-analyze').checked = config.auto_analyze !== false;
-    $('profile-label').textContent = config.profile_id ? `已验证账号 ${config.profile_id.slice(0, 8)}…` : '等待连接小红书';
+    $('profile-label').textContent = status?.demo_mode ? '导入流程测试环境' : (config.profile_id ? `已验证账号 ${config.profile_id.slice(0, 8)}…` : '等待连接小红书');
     selectionChanged();
   }
 
@@ -136,7 +155,9 @@
     }));
     const pending = ['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_pending'] || 0), 0);
     const analyzed = ['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_analyzed'] || 0), 0);
-    $('analysis-status').textContent = `本次自动归类 ${analyzed} 条；已呈现 ${['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_visible'] || 0), 0)} 条；${pending} 条待分析或补采。`;
+    $('analysis-status').textContent = status?.demo_mode
+      ? '测试模式只演示步骤，不采集或分析真实内容。'
+      : `本次自动归类 ${analyzed} 条；已呈现 ${['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_visible'] || 0), 0)} 条；${pending} 条待分析或补采。`;
     $('event-log').replaceChildren(...(job.events || []).slice(-16).reverse().map(event => {
       const li = document.createElement('li');
       const detail = event.detail;
@@ -153,8 +174,10 @@
     if (job.state === 'complete' || job.state === 'partial') {
       const total = ['liked', 'saved'].reduce((sum, source) => sum + (job.counts?.[source + '_visible'] || 0), 0);
       const following = job.counts?.following_visible || 0;
-      $('done-summary').textContent = `已生成 ${total} 条笔记、${following} 位关注账号的本机资料；${pending} 条笔记仍需阅读分析或补采。`;
-      $('done-title').textContent = job.state === 'partial' ? '导入已保存，部分内容待核实' : '导入已保存到本机';
+      $('done-summary').textContent = status?.demo_mode
+        ? '流程模拟完成。没有连接真实账号，也没有导入你的个人资料。'
+        : `已生成 ${total} 条笔记、${following} 位关注账号的本机资料；${pending} 条笔记仍需阅读分析或补采。`;
+      $('done-title').textContent = status?.demo_mode ? '导入流程测试完成' : (job.state === 'partial' ? '导入已保存，部分内容待核实' : '导入已保存到本机');
       show('done');
     }
   }
@@ -190,7 +213,7 @@
       await request('/api/import/start', {});
       show('progress');
     } catch (error) { notice(error.message); }
-    finally { button.disabled = false; button.textContent = '我已登录，验证连接'; }
+    finally { button.disabled = false; button.textContent = status?.demo_mode ? '模拟验证并继续' : '我已登录，验证连接'; }
   });
   $('cancel-import').addEventListener('click', async () => {
     try { await request('/api/import/cancel', {}); await poll(); }
@@ -201,6 +224,27 @@
   document.querySelectorAll('input[name="source"]').forEach(input => input.addEventListener('change', selectionChanged));
   request('/api/status').then(value => {
     status = value;
+    if (value.demo_mode) {
+      document.title = '导入流程测试 · 拾集';
+      $('demo-banner').hidden = false;
+      $('check-connection').textContent = '模拟验证并继续';
+      $('to-connect').firstChild.textContent = '继续模拟连接 ';
+      document.querySelector('.connect-panel .link-button').hidden = true;
+      document.querySelector('.connect-panel > p').textContent = '此页只模拟登录与导入流程，不访问小红书账号。';
+      document.querySelector('.connect-panel .button-note').textContent = '点击下方按钮即可模拟验证；无需登录或授权浏览器。';
+      document.querySelector('.connect-panel ol').hidden = true;
+    }
+    if (value.account_test) {
+      document.title = '新账号授权导入 · 拾集';
+      $('account-test-banner').hidden = false;
+      if (value.previous_account_url) {
+        for (const id of ['previous-account-nav', 'previous-account-banner']) {
+          $(id).href = value.previous_account_url;
+          $(id).hidden = false;
+        }
+      }
+      document.querySelector('.other-source')?.remove();
+    }
     syncSettings(value.config);
     updateNavigation(value);
     $('import-type').textContent = value.libraries.liked.visible || value.libraries.saved.visible || value.following_count ? '增量导入' : '首次导入';

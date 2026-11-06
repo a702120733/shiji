@@ -22,7 +22,15 @@
 
 如需登录后自动启动并在意外退出后重启，在 macOS 上运行 `./.venv/bin/python scripts/service.py install`；移除登录项运行 `./.venv/bin/python scripts/service.py uninstall`。安装时会把运行代码和虚拟环境复制到 `~/Library/Application Support/Shiji/`，避免 macOS 登录项无法读取 Documents 下的项目；数据和日志也保存在该目录。更新项目代码后重新运行 `install` 即可同步运行副本。启用前请先停止手动运行的 `./run.sh`，避免端口冲突。
 
-点击“打开小红书官方网页”是在用户自己的 Chrome 中完成登录，不是小红书官方 OAuth 授权。点击“验证连接”会通过 OpenCLI 在后台读取当前登录账号 ID。自动分类需要本机已登录的 Codex CLI；可运行 `codex login status` 检查。开启时，选中的正文、原图、视频抽帧和转写会交由 Codex 模型处理；不希望发送这些内容时可取消勾选，稍后手动分析。首次导入建议每类先读 5 条，确认效果再扩大范围。用户可随时取消，已完成内容保留。
+只检查导入界面时，可改用 `./.venv/bin/python scripts/service.py install-demo`。它在 8879 端口展示醒目的测试标识，数据写入独立的 `~/Library/Application Support/Shiji/demo-data/`；登录和导入步骤只做模拟，Chrome 书签读取接口也会拒绝访问真实配置。用 `install` 切回可实际导入的版本，两种模式都不会使用其他资料库目录。
+
+若要用另一个小红书账号真实测试授权和导入，可运行 `./.venv/bin/python scripts/service.py install-account-test 当前账号主页ID`，然后打开 `http://127.0.0.1:8880/import`。该服务使用独立的 `account-test-data/`，默认每类读取 100 条，可在下拉菜单中选择 200、500 或 1000 条；连接时会拒绝当前账号 ID，只有在 Chrome 登录了不同账号后才能继续；不会合并到既有资料库。移除测试服务可运行 `uninstall-account-test`。
+
+已有本机资料库时，可在安装测试服务前设置 `SHIJI_PREVIOUS_ACCOUNT_URL=http://127.0.0.1:8765/accounts.html`，导入页会显示“返回原账号”。这个入口只切换资料库页面，不更改 Chrome 中的小红书登录账号。
+
+已有本机资料库可在账号设置页显示经过主页核验的昵称和本机头像副本，并用“添加账号”进入 8880 的独立授权流程。页面可由 `scripts/render_account_settings.py --root 资料库路径` 从私有的 `account-profile.json` 生成；私有 JSON 不通过网页服务公开。
+
+点击“打开小红书官方网页”是在用户自己的 Chrome 中完成登录，不是小红书官方 OAuth 授权。点击“验证连接”会通过 OpenCLI 在后台读取当前登录账号 ID。自动分类需要本机已登录的 Codex CLI；可运行 `codex login status` 检查。开启时，选中的正文、原图、视频抽帧和转写会交由 Codex 模型处理；不希望发送这些内容时可取消勾选，稍后手动分析。首次导入建议从最低的 100 条开始，确认效果再扩大范围。用户可随时取消，已完成内容保留。
 
 Chrome 收藏夹入口是 `/bookmarks.html`。点击“授权读取并自动导入”后，拾集在本机读取 Chrome 最近使用的配置的 `Bookmarks` 文件，不需要导出 HTML，也不需要 Chrome 密码或 Cookie。授权仅限这个配置；之后打开页面会自动同步。若 Chrome 文件不可访问，可展开备用的 HTML 导入方式。`/products.html` 可添加自己的产品名称、网址与简介。开源仓库不包含你的书签、个人产品或任何已采集笔记。
 

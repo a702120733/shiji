@@ -35,7 +35,8 @@ PROFILE_ID = re.compile(r'^[0-9a-f]{24}$', re.I)
 SOURCES = ('liked', 'saved', 'following')
 PRIVATE_FILES = {'manifest.json', 'authors.json', 'display-order.json', 'media-dimensions.json',
                  'downloads.json', 'metadata.json', 'analysis.json', 'review.json', 'config.json',
-                 'following-list.json', 'following-orders.json', 'bookmarks.json', 'bookmarks-access.json', 'products.json'}
+                 'following-list.json', 'following-orders.json', 'bookmarks.json', 'bookmarks-access.json',
+                 'products.json', 'account-profile.json'}
 
 
 def utc_now():
@@ -75,8 +76,11 @@ def cli_env():
 
 
 class ImportManager:
-    def __init__(self, data_dir: Path):
+    def __init__(self, data_dir: Path, demo_mode=False, excluded_profile_id='', previous_account_url=''):
         self.root = data_dir.resolve()
+        self.demo_mode = demo_mode
+        self.excluded_profile_id = excluded_profile_id.lower()
+        self.previous_account_url = previous_account_url
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.config_path = self.root / 'config.json'
         self.bookmarks_access_path = self.root / 'bookmarks-access.json'
@@ -86,13 +90,16 @@ class ImportManager:
         self.job = {'state': 'idle', 'phase': '', 'events': [], 'counts': {}, 'error': '', 'started_at': None}
 
     def config(self):
-        return read_json(self.config_path, {'sources': ['liked'], 'limit': 100, 'auto_analyze': True,
+        return read_json(self.config_path, {'sources': ['liked'], 'limit': 100,
+                                            'auto_analyze': True,
                                             'profile_id': '', 'verified_at': None})
 
     def status(self):
         with self.lock:
             config = self.config()
-            return {'config': config, 'job': json.loads(json.dumps(self.job)),
+            return {'demo_mode': self.demo_mode, 'account_test': bool(self.excluded_profile_id),
+                    'previous_account_url': self.previous_account_url if self.excluded_profile_id else '',
+                    'config': config, 'job': json.loads(json.dumps(self.job)),
                     'libraries': {source: {'visible': read_json(self.root / source / 'render-status.json', {}).get('visible', 0),
                                            'pending': read_json(self.root / source / 'render-status.json', {}).get('analysis_pending', 0),
                                            'categories': read_json(self.root / source / 'render-status.json', {}).get('categories', {})}
@@ -102,6 +109,8 @@ class ImportManager:
                     'products_count': len(read_json(self.root / 'products.json', []))}
 
     def import_bookmarks(self, content):
+        if self.demo_mode:
+            raise ValueError('测试环境不读取真实 Chrome 书签')
         rows = parse_chrome_export(content)
         with self.lock:
             write_private(self.root / 'bookmarks.json', rows)
@@ -114,6 +123,8 @@ class ImportManager:
                 'last_sync_at': access.get('last_sync_at')}
 
     def sync_chrome_bookmarks(self, authorize=False):
+        if self.demo_mode:
+            raise ValueError('测试环境不连接真实 Chrome 书签')
         access = read_json(self.bookmarks_access_path, {})
         profile = current_profile() if authorize else access.get('profile')
         if not profile:
@@ -171,6 +182,11 @@ class ImportManager:
         with self.lock:
             if self.job['state'] == 'running':
                 raise ValueError('请等待当前导入完成')
+        if self.demo_mode:
+            config = self.config()
+            config.update(profile_id='0' * 24, verified_at=utc_now())
+            write_private(self.config_path, config)
+            return {'profile_id': config['profile_id'], 'verified_at': config['verified_at']}
         executable = shutil.which('opencli')
         if not executable:
             raise RuntimeError('未安装 OpenCLI；请先完成 README 中的 Chrome 扩展连接')
@@ -185,6 +201,14 @@ class ImportManager:
         profile_id = rows[0].get('profile_id') if isinstance(rows, list) and rows and isinstance(rows[0], dict) else None
         if not isinstance(profile_id, str) or not PROFILE_ID.fullmatch(profile_id):
             raise RuntimeError('未能确认当前登录账号，请在 Chrome 中登录小红书后重试')
+        if profile_id.lower() == self.excluded_profile_id:
+            raise ValueError('当前仍是已有账号。请在 Chrome 中切换到要添加的小红书账号，再验证连接。')
+        previous_id = self.config().get('profile_id', '')
+        has_imported_data = any((self.root / name).exists() for name in (
+            'liked/latest-list.json', 'liked/manifest.json', 'saved/latest-list.json',
+            'saved/manifest.json', 'following-list.json'))
+        if self.excluded_profile_id and previous_id and previous_id != profile_id.lower() and has_imported_data:
+            raise ValueError('这个测试资料库已保存另一个账号的内容，不能混合导入。请使用新的独立测试目录。')
         with self.lock:
             config = self.config()
             config.update(profile_id=profile_id.lower(), verified_at=utc_now())
@@ -196,6 +220,8 @@ class ImportManager:
             config = self.config()
             if not PROFILE_ID.fullmatch(config.get('profile_id', '')):
                 raise ValueError('请先验证已登录的小红书账号')
+            if config['profile_id'].lower() == self.excluded_profile_id:
+                raise ValueError('测试导入不能使用已有账号，请切换小红书账号')
             try:
                 verified = datetime.fromisoformat(config.get('verified_at') or '')
             except ValueError:
@@ -204,16 +230,29 @@ class ImportManager:
                 raise ValueError('登录验证已过期，请重新验证当前账号')
             if self.job['state'] == 'running':
                 raise ValueError('已有导入任务正在运行')
-            if not shutil.which('opencli'):
+            if not self.demo_mode and not shutil.which('opencli'):
                 raise RuntimeError('OpenCLI 不可用')
-            if config.get('auto_analyze', True) and any(source in ('liked', 'saved') for source in config['sources']) and not codex_binary():
+            if not self.demo_mode and config.get('auto_analyze', True) and any(source in ('liked', 'saved') for source in config['sources']) and not codex_binary():
                 raise RuntimeError('自动归类需要已登录的 Codex CLI；安装后重试，或在导入设置中关闭自动归类')
             self.cancel_requested = False
             self.job = {'state': 'running', 'phase': '准备导入', 'events': [], 'counts': {},
                         'error': '', 'started_at': utc_now(), 'finished_at': None}
-            thread = threading.Thread(target=self._run, args=(config,), daemon=True)
+            thread = threading.Thread(target=self._run_demo if self.demo_mode else self._run,
+                                      args=(config,), daemon=True)
             thread.start()
             return self.job
+
+    def _run_demo(self, config):
+        import time
+        for source in config['sources']:
+            time.sleep(0.4)
+            if self.cancel_requested:
+                with self.lock:
+                    self.job.update(state='cancelled', phase='模拟已取消', finished_at=utc_now())
+                return
+            self._event(source, '模拟读取', {'message': '测试流程：未连接真实账号，也未保存个人内容'})
+        with self.lock:
+            self.job.update(state='complete', phase='模拟完成', finished_at=utc_now())
 
     def cancel(self):
         with self.lock:
@@ -469,12 +508,12 @@ class AppHandler(library_server.LibraryHandler):
             return
         if path == '/index.html':
             self.send_response(302)
-            self.send_header('Location', '/liked/index.html')
+            self.send_header('Location', '/import' if self.server.import_manager.demo_mode else '/liked/index.html')
             self.end_headers()
             return
         if path == '/saved.html':
             self.send_response(302)
-            self.send_header('Location', '/saved/index.html')
+            self.send_header('Location', '/import' if self.server.import_manager.demo_mode else '/saved/index.html')
             self.end_headers()
             return
         parts = Path(path).parts
@@ -599,7 +638,18 @@ def main():
     parser.add_argument('--data-dir', type=Path, default=Path.cwd() / 'data')
     parser.add_argument('--port', type=int, default=8879)
     args = parser.parse_args()
-    manager = ImportManager(args.data_dir)
+    excluded = os.environ.get('SHIJI_EXCLUDE_PROFILE_ID', '')
+    if excluded and not PROFILE_ID.fullmatch(excluded):
+        parser.error('SHIJI_EXCLUDE_PROFILE_ID must be a 24 character profile ID')
+    previous_url = os.environ.get('SHIJI_PREVIOUS_ACCOUNT_URL', '').strip()
+    if previous_url:
+        target = urlsplit(previous_url)
+        if (not excluded or target.scheme != 'http' or target.hostname not in ('127.0.0.1', 'localhost')
+                or target.path not in ('/accounts.html', '/import') or target.username or target.password
+                or target.query or target.fragment or target.port is None):
+            parser.error('SHIJI_PREVIOUS_ACCOUNT_URL must be a local account or import page')
+    manager = ImportManager(args.data_dir, demo_mode=os.environ.get('SHIJI_DEMO_MODE') == '1',
+                            excluded_profile_id=excluded, previous_account_url=previous_url)
     server = ThreadingHTTPServer(('127.0.0.1', args.port), partial(AppHandler, directory=str(manager.root)))
     server.import_manager = manager
     server.group_store = library_server.GroupStore(manager.root / 'liked')

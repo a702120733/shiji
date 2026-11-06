@@ -14,6 +14,7 @@
       <a class="brand" href="/import"><span class="brand-icon">▯</span><strong>拾集</strong><small>SHIJI</small></a>
       <nav aria-label="主导航">
         <a class="active" href="/import"><span class="nav-icon">⇩</span>导入中心</a>
+        <a id="previous-account-nav" href="#" hidden><span class="nav-icon">↶</span>返回原账号</a>
         <div class="nav-gap" data-nav-gap hidden></div>
         <a href="/index.html" data-library-link="notes" hidden><span class="nav-icon">▦</span>全部灵感</a>
         <a href="/index.html" data-library-link="liked" hidden><span class="nav-icon">♡</span>我的点赞 <small id="liked-count"></small></a>
@@ -34,6 +35,8 @@
       <div class="content">
         <div class="heading"><div class="eyebrow" id="eyebrow">YOUR PERSONAL INSPIRATION ARCHIVE</div><h1 id="page-title">让喜欢过的内容，成为你的资料库。</h1><p id="page-description">选择要导入的内容，再连接你已登录的小红书。</p></div>
         <div class="steps" aria-label="导入进度"><div class="step active" data-step="settings"><span>01</span>设置导入</div><div class="step" data-step="connect"><span>02</span>验证登录</div><div class="step" data-step="progress"><span>03</span>抓取与整理</div><div class="step" data-step="done"><span>04</span>开始管理</div></div>
+        <div id="demo-banner" class="demo-banner" role="status" hidden>导入流程测试环境 · 仅模拟连接与导入，不读取真实小红书或 Chrome 数据。</div>
+        <div id="account-test-banner" class="demo-banner" role="status" hidden>新账号授权导入测试 · 这里会读取你接下来授权的小红书账号，资料单独保存在测试目录，不会合并到原账号。<a id="previous-account-banner" href="#" hidden>返回原账号 →</a></div>
         <div id="notice" class="notice" role="status" hidden></div>
 
         <section class="stage" id="settings-stage" aria-labelledby="settings-title">
@@ -46,7 +49,7 @@
                 <label class="source-card"><input type="checkbox" name="source" value="saved"><span class="source-icon">▯</span><strong>收藏</strong><small>选定范围内的灵感</small></label>
                 <label class="source-card"><input type="checkbox" name="source" value="following"><span class="source-icon">♧</span><strong>关注</strong><small>持续关注的创作者</small></label>
               </div>
-              <div class="limit-row"><label for="limit">每类读取上限</label><input id="limit" type="number" min="1" max="1000" value="100"><span>可在下次导入时调整；已保存内容不会清空。</span></div>
+              <div class="limit-row"><label for="limit">每类读取上限</label><select id="limit"><option value="100">100 条</option><option value="200">200 条</option><option value="500">500 条</option><option value="1000">1000 条</option></select><span>可在下次导入时调整；已保存内容不会清空。</span></div>
               <h3>读取规则</h3>
               <div class="rules"><div><span>✓</span><p><b>只读整理</b><small>不点赞、取消收藏或关注其他账号。</small></p></div><div><span>✓</span><p><b>保留失败记录</b><small>无法访问的笔记会标明原因，可稍后重试。</small></p></div><div><span>✓</span><p><b>逐条自动归类</b><small>读取正文、全部原图、视频抽帧与转写；无法核实的内容保留待分析。</small></p></div></div>
               <div class="panel-divider"></div>

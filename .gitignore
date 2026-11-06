@@ -13,6 +13,9 @@ node_modules/
 *.tar.gz
 
 # Personal library exports, signed links and account state must never enter Git.
+**/account-profile.json
+**/account-avatar.*
+**/accounts.html
 **/manifest.json
 **/latest-list.json
 **/raw.json
@@ -26,3 +29,10 @@ node_modules/
 **/review.json
 **/bookmarks.json
 **/products.json
+**/following.json
+**/following.csv
+**/chrome-bookmarks.json
+**/personal-products.json
+**/shiji-counts.json
+**/render-status.json
+**/notes/

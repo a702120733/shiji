@@ -40,6 +40,13 @@
     card.append(anchor);
     card.append(node('small', '', new URL(href).hostname));
   };
+  const environment = request('/api/status').then(state => {
+    if (!state.demo_mode) return false;
+    document.title = `测试环境 · ${document.title}`;
+    const banner = node('div', 'demo-banner', '导入流程测试环境 · 与个人资料库隔离，不读取真实账号或 Chrome 书签。');
+    document.querySelector('.content').prepend(banner);
+    return true;
+  });
 
   if (page === 'bookmarks') {
     const file = document.querySelector('#bookmark-file');
@@ -138,7 +145,16 @@
     });
     folderFilter.addEventListener('change', render);
     search.addEventListener('input', render);
-    request('/api/bookmarks/access').then(async access => {
+    environment.then(async demo => {
+      if (demo) {
+        connectButton.disabled = true;
+        importButton.disabled = true;
+        file.disabled = true;
+        connection.textContent = '测试环境不连接 Chrome';
+        await load();
+        return;
+      }
+      const access = await request('/api/bookmarks/access');
       connection.dataset.authorized = String(access.authorized);
       if (access.authorized) {
         connection.textContent = `已连接 ${access.profile}`;

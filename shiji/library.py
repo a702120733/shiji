@@ -731,7 +731,7 @@ def build_html(root, entries, counts, failures, source='liked'):
     if source == 'saved':
         output = output.replace('小红书点赞资料库', '小红书收藏资料库')
         output = output.replace('/open-note/', '/open-saved-note/')
-    output = wrap_shell(output, source, len(entries), following_count)
+    output = wrap_shell(output, source, len(entries), following_count, root=root)
     (root / 'index.html').write_text(output, encoding='utf-8')
 
 

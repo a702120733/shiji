@@ -1,0 +1,19 @@
+body[data-library="accounts"]{margin:0}
+body[data-library="accounts"] .shiji-sidebar>.shiji-account-link{color:var(--ink)}
+.account-page{max-width:980px!important}
+.account-heading{margin-bottom:28px}
+.account-heading h1{margin:0 0 8px}
+.account-heading p{margin:0;color:var(--muted);font-size:13px}
+.account-panel{padding:28px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.account-panel+.account-panel{margin-top:18px}
+.account-row{display:flex;align-items:center;gap:20px;min-width:0}
+.account-avatar{width:86px;height:86px;flex:none;object-fit:cover;border-radius:50%;background:#eee}
+.account-name{min-width:0}.account-name h2{margin:0 0 8px;font-size:23px;line-height:1.3}.account-name p{margin:0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.account-status{display:inline-block;margin:0 0 9px;padding:4px 8px;border-radius:6px;background:#edf2ec;color:#476148;font-size:11px;font-weight:600}
+.account-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:26px 0 0;padding-top:22px;border-top:1px solid var(--line)}
+.account-meta dt{margin-bottom:5px;color:var(--muted);font-size:11px}.account-meta dd{margin:0;font-size:13px;overflow-wrap:anywhere}
+.account-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:24px}
+.account-action{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:13px;font-weight:600;text-decoration:none}
+.account-action:hover{border-color:#c5c0b7;text-decoration:none}.account-action.primary{border-color:var(--ink);background:var(--ink);color:#fff}.account-action.primary:hover{background:#4a4944;color:#fff}
+.account-panel h2.section-title{margin:0 0 9px;font-size:18px}.account-panel p.note{margin:0;color:var(--muted);font-size:13px;line-height:1.7}
+@media(max-width:700px){.account-panel{padding:20px}.account-meta{grid-template-columns:1fr}.account-avatar{width:64px;height:64px}.account-name h2{font-size:19px}}

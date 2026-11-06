@@ -1,10 +1,12 @@
 """Render the shared library shell before the page reaches the browser."""
 from pathlib import Path
+from html import escape
+import json
 import re
 from typing import Optional
 
 
-def wrap_shell(page: str, scope: str, liked_count: Optional[int], following_count: Optional[int], bookmarks_count: Optional[int] = None, products_count: Optional[int] = None) -> str:
+def wrap_shell(page: str, scope: str, liked_count: Optional[int], following_count: Optional[int], bookmarks_count: Optional[int] = None, products_count: Optional[int] = None, root: Optional[Path] = None) -> str:
     if scope not in ('liked', 'saved', 'following', 'bookmarks', 'products'):
         raise ValueError(f'Unknown library scope: {scope}')
     marker = f'<body data-library="{"liked" if scope == "saved" else scope}">'
@@ -16,6 +18,17 @@ def wrap_shell(page: str, scope: str, liked_count: Optional[int], following_coun
         raise ValueError(f'Search input missing from {scope} page')
     main = main[:search.start()] + main[search.end():]
     shell = (Path(__file__).with_name('shiji-shell.html')).read_text(encoding='utf-8')
+    account_name = '账号设置'
+    account_avatar = 'shiji-assets/settings.svg'
+    if root and (root / 'account-profile.json').is_file():
+        try:
+            profile = json.loads((root / 'account-profile.json').read_text(encoding='utf-8'))
+            account_name = str(profile.get('name') or account_name)
+            avatar = profile.get('avatar', '')
+            if avatar in ('account-avatar.jpg', 'account-avatar.webp') and (root / avatar).is_file():
+                account_avatar = avatar
+        except (OSError, ValueError, TypeError):
+            pass
     if scope in ('bookmarks', 'products'):
         bookmark_current = 'aria-current="page"' if scope == 'bookmarks' else ''
         product_current = 'aria-current="page"' if scope == 'products' else ''
@@ -42,6 +55,8 @@ def wrap_shell(page: str, scope: str, liked_count: Optional[int], following_coun
         '__XHS_CURRENT__': 'aria-current="page"' if scope in ('liked', 'saved', 'following') else '',
         '__CHROME_CURRENT__': 'aria-current="page"' if scope in ('bookmarks', 'products') else '',
         '__FUNCTION_NAV__': function_nav,
+        '__ACCOUNT_NAME__': escape(account_name, quote=True),
+        '__ACCOUNT_AVATAR__': escape(account_avatar, quote=True),
         '__GROUP_HEADING__': '分类' if scope == 'bookmarks' else '我的分组',
         '__GROUP_ACTION__': '<button class="shiji-folder-add" type="button" aria-label="新建文件夹" title="新建文件夹">＋</button>' if scope == 'liked' else '<small>按内容整理</small>' if scope == 'bookmarks' else '<small>可自定义</small>',
         '__GROUPS_LABEL__': '分组文件夹' if scope == 'liked' else '常用分组',

@@ -36,6 +36,28 @@
   }
   const workspace = shell.querySelector('.shiji-workspace');
   const nav = shell.querySelector('.shiji-nav');
+  nav?.querySelector('.shiji-account-link')?.remove();
+  let accountLink = shell.querySelector('.shiji-sidebar > .shiji-account-link');
+  if (!accountLink) {
+    accountLink = document.createElement('a');
+    accountLink.className = 'shiji-account-link';
+    accountLink.href = 'accounts.html';
+    accountLink.setAttribute('aria-label', '账号设置');
+    accountLink.innerHTML = `<img class="shiji-account-avatar" src="shiji-assets/settings.svg" alt="" aria-hidden="true"><span class="shiji-account-copy"><strong class="shiji-account-name">账号设置</strong><small>账号设置</small></span><span class="shiji-account-arrow" aria-hidden="true">›</span>`;
+    shell.querySelector('.shiji-sidebar-spacer')?.insertAdjacentElement('afterend', accountLink);
+  }
+  shell.querySelector('.shiji-sidebar-footer')?.remove();
+  fetch('accounts.html', {cache: 'no-store'}).then(response => response.ok ? response.text() : '').then(markup => {
+    if (!markup) return;
+    const page = new DOMParser().parseFromString(markup, 'text/html');
+    const name = page.querySelector('.account-name h2')?.textContent.trim();
+    const avatar = page.querySelector('.account-avatar')?.getAttribute('src');
+    if (name) {
+      accountLink.querySelector('.shiji-account-name').textContent = name;
+      accountLink.setAttribute('aria-label', `${name} · 账号设置`);
+    }
+    if (['account-avatar.jpg', 'account-avatar.webp'].includes(avatar)) accountLink.querySelector('.shiji-account-avatar').src = avatar;
+  }).catch(() => {});
   if (scope !== 'bookmarks' && !nav.querySelector('.shiji-trash-link')) {
     const link = document.createElement('a');
     link.className = 'shiji-trash-link';
