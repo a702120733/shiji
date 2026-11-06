@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>导入中心 · 拾集</title>
+  <link rel="stylesheet" href="/import.css">
+  <script src="/import.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/import"><span class="brand-icon">▯</span><strong>拾集</strong><small>SHIJI</small></a>
+      <nav aria-label="主导航">
+        <a class="active" href="/import"><span class="nav-icon">⇩</span>导入中心</a>
+        <div class="nav-gap"></div>
+        <a href="/index.html"><span class="nav-icon">▦</span>全部灵感</a>
+        <a href="/index.html"><span class="nav-icon">♡</span>我的点赞 <small id="liked-count"></small></a>
+        <a href="/saved.html"><span class="nav-icon">▯</span>我的收藏 <small id="saved-count"></small></a>
+        <a href="/following.html"><span class="nav-icon">♧</span>我的关注 <small id="following-count"></small></a>
+        <div class="nav-gap"></div>
+        <a href="/bookmarks.html"><span class="nav-icon">▯</span>Chrome 收藏夹</a>
+        <a href="/products.html"><span class="nav-icon">✧</span>个人产品</a>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-heading">我的分组 <span>本地</span></div>
+      <p class="sidebar-note">导入后可在资料库中整理分组。</p>
+      <div class="sidebar-spacer"></div>
+      <a class="help-link" href="https://github.com" target="_blank" rel="noreferrer" hidden>帮助与隐私</a>
+      <div class="sidebar-divider"></div>
+      <div class="profile"><span class="avatar">我</span><span><b>本地资料库</b><small id="profile-label">等待连接小红书</small></span></div>
+    </aside>
+    <main>
+      <div class="topbar"><span>我的空间 <span class="chevron">›</span> <strong>导入中心</strong></span><span class="top-status">仅在这台设备保存</span></div>
+      <div class="content">
+        <div class="heading"><div class="eyebrow" id="eyebrow">YOUR PERSONAL INSPIRATION ARCHIVE</div><h1 id="page-title">让喜欢过的内容，成为你的资料库。</h1><p id="page-description">选择要导入的内容，再连接你已登录的小红书。</p></div>
+        <div class="steps" aria-label="导入进度"><div class="step active" data-step="settings"><span>01</span>设置导入</div><div class="step" data-step="connect"><span>02</span>验证登录</div><div class="step" data-step="progress"><span>03</span>抓取与整理</div><div class="step" data-step="done"><span>04</span>开始管理</div></div>
+        <div id="notice" class="notice" role="status" hidden></div>
+
+        <section class="stage" id="settings-stage" aria-labelledby="settings-title">
+          <div class="settings-grid">
+            <div class="panel setup-panel">
+              <div class="panel-heading"><div><h2 id="settings-title">开始一次灵感整理</h2><p>选择要带走的内容，其余交给拾集。</p></div><span class="badge" id="import-type">首次导入</span></div>
+              <h3>导入范围 <small>可多选</small></h3>
+              <div class="source-grid">
+                <label class="source-card"><input type="checkbox" name="source" value="liked" checked><span class="source-icon">♡</span><strong>点赞</strong><small>选定范围内的笔记</small></label>
+                <label class="source-card"><input type="checkbox" name="source" value="saved"><span class="source-icon">▯</span><strong>收藏</strong><small>选定范围内的灵感</small></label>
+                <label class="source-card"><input type="checkbox" name="source" value="following"><span class="source-icon">♧</span><strong>关注</strong><small>持续关注的创作者</small></label>
+              </div>
+              <div class="limit-row"><label for="limit">每类读取上限</label><input id="limit" type="number" min="1" max="1000" value="100"><span>可在下次导入时调整；已保存内容不会清空。</span></div>
+              <h3>读取规则</h3>
+              <div class="rules"><div><span>✓</span><p><b>只读整理</b><small>不点赞、取消收藏或关注其他账号。</small></p></div><div><span>✓</span><p><b>保留失败记录</b><small>无法访问的笔记会标明原因，可稍后重试。</small></p></div><div><span>✓</span><p><b>内容待分析</b><small>下载和转写后先标记待分析，不会凭标题生成结论。</small></p></div></div>
+              <div class="panel-divider"></div>
+              <div class="ai-row"><span class="ai-icon">✧</span><div><b>本地预处理</b><small>原图、视频抽帧与语音转写保存在本机；准确分类与总结需逐条阅读。</small></div><span class="muted-badge">自动开启</span></div>
+              <button type="button" id="to-connect" class="primary">继续连接小红书 <span>→</span></button>
+              <p class="button-note" id="selection-note">已选择 1 项内容 · 下一步将在小红书网页完成登录</p>
+            </div>
+            <div class="editorial"><div class="editorial-box"><h2>喜欢过的生活，<br>都有迹可循。</h2><p>一处收藏，慢慢长成你的灵感地图。</p><div class="editorial-art"><span>✦</span><span>▧</span><span>◌</span></div></div><h3>让整理，变得轻一点</h3><p>自动归档 · 原图与视频保存 · 由你决定同步</p></div>
+          </div>
+        </section>
+
+        <section class="stage" id="connect-stage" hidden aria-labelledby="connect-title">
+          <div class="connect-grid"><div class="panel connect-panel"><div class="connect-symbol"><span>▯</span><b>↔</b><span>小红书</span></div><span class="badge" id="connect-badge">等待登录验证</span><h2 id="connect-title">去小红书，完成最后一步连接</h2><p>在你自己的 Chrome 中登录小红书。拾集不会索取账号密码或导出 Cookie。</p><a class="primary link-button" href="https://www.xiaohongshu.com/" target="_blank" rel="noreferrer">↗ 打开小红书官方网页</a><button class="secondary" id="check-connection" type="button">我已登录，验证连接</button><p class="button-note">OpenCLI 扩展需要你在浏览器中授予小红书网页读取权限；验证只读取当前登录账号。</p><div class="panel-divider"></div><ol><li>在 Chrome 中打开并登录小红书</li><li>确认 OpenCLI 扩展已连接这个浏览器</li><li>回到这里，点击“验证连接”</li></ol></div><div class="right-stack"><div class="panel permissions"><h3>将读取哪些内容？</h3><p>仅导入你上一步选中的内容。</p><div id="permission-list"></div></div><div class="privacy-box"><b>连接，不等于修改账号</b><p>导入只读取可访问内容。平台要求验证或限制访问时会保存进度并停止。</p></div></div></div><button class="back-link" id="back-settings" type="button">← 返回修改导入设置</button>
+        </section>
+
+        <section class="stage" id="progress-stage" hidden aria-labelledby="progress-title"><div class="panel progress-panel"><div class="progress-heading"><span class="progress-symbol">↻</span><div><h2 id="progress-title">你的灵感，正在归位</h2><p id="progress-phase">准备导入</p></div><span class="badge" id="job-state">进行中</span></div><div class="progress-line"><div id="progress-bar"></div></div><div class="progress-columns"><div><h3>内容抓取</h3><div id="source-progress"></div></div><div><h3>整理状态</h3><p>原始素材、抽帧和转写保存在本机。逐条分类与总结在实际阅读后补充。</p><div id="analysis-status"></div></div></div></div><div class="log-grid"><div class="panel"><h3>导入记录</h3><ol id="event-log"></ol></div><div class="panel"><h3>访问与隐私</h3><p>遇到登录、验证码、风控或访问拒绝时，当前任务会停止。已保存的素材不会删除。</p><button class="secondary" id="cancel-import" type="button">取消本次导入</button><button class="secondary" id="retry-import" type="button" hidden>返回导入设置</button></div></div></section>
+
+        <section class="stage" id="done-stage" hidden aria-labelledby="done-title"><div class="panel done-panel"><div class="done-symbol">✓</div><h2 id="done-title">导入已保存到本机</h2><p id="done-summary">你可以打开资料库查看内容。</p><div class="result-links"><a class="primary link-button" href="/index.html">查看点赞资料库 →</a><a class="secondary link-button" href="/saved.html">查看收藏资料库</a><a class="secondary link-button" href="/following.html">查看关注名单</a></div><p>尚未逐条核验的内容显示“待分析”。关注账号没有真实主页链接时会标为“待核实”。</p><button class="back-link" id="new-import" type="button">再次导入或补采 →</button></div></section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

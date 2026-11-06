@@ -1,0 +1,22 @@
+/* Shared navigation and local group editing for both library pages. */
+.list-tabs{display:flex;gap:28px;margin:0 0 24px;border-bottom:1px solid var(--line)}
+.list-tab{padding:0 2px 11px;color:var(--muted);font-size:15px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.list-tab:hover{text-decoration:none;color:var(--ink)}.list-tab[aria-current="page"]{color:var(--ink);border-color:var(--accent);font-weight:600}
+.group-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:17px;color:var(--muted);font-size:12px}
+.group-tools small{font-size:11px;margin-left:9px;color:#938b80}.group-create{border:0;background:none;color:var(--accent);font:inherit;cursor:pointer;padding:3px 0}
+.group-tools+.filters{margin-top:9px}.group-status{font-size:11px;color:#52724c}.group-status.error{color:#aa3d2c}.group-tools.saving .group-create{opacity:.5;pointer-events:none}
+body[data-library="liked"] .group-tools-compact{display:contents}body[data-library="liked"] .group-tools-compact .group-status:empty{display:none}
+body[data-library="liked"] .group-tools-compact .group-status:not(:empty){position:fixed;right:24px;bottom:24px;z-index:120;max-width:calc(100vw - 48px);padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);box-shadow:0 4px 18px #0002;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-library="liked"] .filters .group-create{display:grid;place-items:center;min-width:36px;min-height:32px;padding:5px 10px;border:1px solid var(--line);border-radius:100px;background:#fff;color:var(--ink);font:18px/1 system-ui;cursor:pointer}body[data-library="liked"] .filters .group-create:hover{background:#f2f1ed}body[data-library="liked"] .filters .group-create:disabled{opacity:.5;cursor:wait}
+.filters [data-group-id]{cursor:grab;touch-action:none}.filters [data-group-id]:active{cursor:grabbing}
+.filters .group-drop-target{outline:2px dashed var(--accent);outline-offset:3px;background:#eee3d7}
+.group-dragging{opacity:.5}.group-handle{display:grid;place-items:center;flex:none;width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:7px;color:#8b7c6b;background:#fffdf8;font:22px/1 system-ui;cursor:grab;touch-action:none}
+.group-handle:active{cursor:grabbing}.gallery>.group-handle{position:absolute;left:10px;top:10px;z-index:3;background:#fffffff0;box-shadow:0 1px 5px #0001}
+article>.row .group-handle{margin-left:8px;order:1}article>.row .quality{margin-left:auto}.group-dialog{width:min(380px,calc(100vw - 32px));border:1px solid var(--line);border-radius:16px;padding:24px;background:var(--paper);color:var(--ink);box-shadow:0 18px 80px #0003}
+.group-dialog::backdrop{background:#211b175c}.group-dialog h2{font-size:19px;margin:0 0 22px}.group-dialog label{display:block;color:var(--muted);font-size:13px}.group-dialog input,.group-dialog select{display:block;width:100%;margin-top:8px;border:1px solid var(--line);padding:11px 12px;background:white;border-radius:9px;font:14px system-ui;color:var(--ink)}
+.group-dialog-error{color:#aa3d2c;min-height:20px;font-size:12px;margin:10px 0}.group-dialog-actions{display:flex;justify-content:flex-end;gap:10px}.group-dialog-actions button{border:1px solid var(--line);border-radius:8px;padding:8px 17px;font:13px system-ui;cursor:pointer;background:transparent;color:var(--ink)}.group-dialog-actions .group-confirm{background:var(--ink);color:white;border-color:var(--ink)}.group-dialog-actions button:disabled{opacity:.5;cursor:wait}
+@media(max-width:680px){.list-tabs{gap:24px;margin-bottom:20px}.list-tab{font-size:14px}.group-tools{gap:8px}.group-tools small{display:block;margin-left:0;margin-top:3px;font-size:10px}.group-handle{width:28px;height:28px}}
+
+.group-handle,.filters [data-group-id]{user-select:none;-webkit-user-drag:none}
+.group-drag-preview{position:fixed;left:0;top:0;z-index:10001;pointer-events:none;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:7px 12px;border:1px solid var(--accent);border-radius:8px;background:#fffdf8;color:var(--ink);box-shadow:0 6px 22px #0002;font:12px system-ui}
+body.group-drag-active .toolbar{position:sticky;top:0;z-index:100;background:var(--paper);box-shadow:0 8px 12px #0001}

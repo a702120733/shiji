@@ -1,0 +1,312 @@
+:root {
+  --paper:#f8f7f4;
+  --sidebar:#f0efea;
+  --ink:#242421;
+  --muted:#817f79;
+  --line:#e5e2dc;
+  --red:#e6404d
+}
+* {
+  box-sizing:border-box
+}
+body {
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif
+}
+a {
+  color:inherit;
+  text-decoration:none
+}
+.shell {
+  display:flex;
+  min-height:100vh
+}
+aside {
+  width:224px;
+  flex:none;
+  background:var(--sidebar);
+  border-right:1px solid var(--line);
+  padding:26px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:sticky;
+  top:0;
+  height:100vh
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:22px;
+  font-weight:750;
+  margin:4px 8px 35px
+}
+.brand span {
+  display:grid;
+  place-items:center;
+  width:35px;
+  height:35px;
+  border-radius:9px;
+  background:var(--red);
+  color:white
+}
+.brand small {
+  font-size:10px;
+  color:var(--muted);
+  font-weight:400
+}
+.section-label {
+  margin:24px 10px 8px;
+  color:var(--muted);
+  font-size:12px
+}
+.nav {
+  padding:10px 12px;
+  border-radius:10px;
+  color:#696962
+}
+.nav:hover,.nav.active {
+  background:white;
+  color:var(--ink)
+}
+.nav.active {
+  font-weight:650
+}
+.spacer {
+  flex:1
+}
+.private {
+  border-top:1px solid var(--line);
+  padding:20px 10px 0;
+  color:var(--muted)
+}
+main {
+  flex:1;
+  min-width:0
+}
+.topbar {
+  height:72px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  padding:0 42px;
+  color:var(--muted)
+}
+.topbar strong {
+  color:var(--ink)
+}
+.content {
+  max-width:1200px;
+  margin:auto;
+  padding:40px 42px 100px
+}
+header {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:32px
+}
+h1 {
+  font-size:30px;
+  margin:0 0 6px;
+  letter-spacing:-.03em
+}
+h2 {
+  font-size:18px;
+  margin:0 0 8px
+}
+p {
+  margin:0 0 14px;
+  color:var(--muted)
+}
+.badge {
+  background:white;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:5px 12px;
+  color:var(--muted)
+}
+.panel {
+  background:white;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:24px;
+  margin-bottom:28px;
+  box-shadow:0 2px 10px #211e1810
+}
+.import-row {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap
+}
+button {
+  font:inherit;
+  cursor:pointer;
+  border:0;
+  background:var(--ink);
+  color:white;
+  border-radius:8px;
+  padding:9px 17px
+}
+button:hover {
+  background:#444
+}
+button:disabled {
+  opacity:.5;
+  cursor:wait
+}
+input,select {
+  font:inherit;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:white;
+  padding:10px;
+  min-width:0
+}
+input[type=file] {
+  max-width:100%
+}
+#message {
+  margin:12px 0 0;
+  min-height:20px
+}
+.controls {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:16px 0 24px
+}
+.controls input {
+  flex:1
+}
+.controls span {
+  color:var(--muted);
+  white-space:nowrap
+}
+.groups {
+  display:grid;
+  gap:26px
+}
+.group {
+  border-top:1px solid var(--line);
+  padding-top:16px
+}
+.group h2 {
+  font-size:20px
+}
+.subgroup {
+  margin-top:16px
+}
+.subgroup h3 {
+  font-size:15px;
+  margin:0 0 10px
+}
+.tertiary {
+  font-size:12px;
+  color:var(--muted);
+  margin:15px 0 8px
+}
+.bookmark-grid,.product-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px
+}
+.card {
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  background:white;
+  min-width:0;
+  overflow:hidden
+}
+.card a {
+  font-weight:650;
+  overflow-wrap:anywhere
+}
+.card a:hover {
+  text-decoration:underline
+}
+.card small {
+  display:block;
+  color:var(--muted);
+  overflow-wrap:anywhere;
+  margin-top:7px
+}
+.empty {
+  padding:40px;
+  text-align:center;
+  border:1px dashed var(--line);
+  border-radius:12px
+}
+.fields {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:18px 0
+}
+.fields label {
+  display:grid;
+  gap:6px
+}
+.fields input {
+  width:100%
+}
+.fields .wide {
+  grid-column:1/-1
+}
+.product-grid .card {
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+.product-grid .card p {
+  flex:1
+}
+.product-grid .card button {
+  align-self:flex-start;
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--muted);
+  padding:5px 10px
+}
+@media(max-width:700px) {
+  .shell {
+    display:block
+  }
+  aside {
+    width:auto;
+    height:auto;
+    position:static;
+    padding:12px;
+    display:block
+  }
+  .brand {
+    margin:4px 8px 10px
+  }
+  .section-label,.spacer,.private {
+    display:none
+  }
+  .nav {
+    display:inline-block
+  }
+  .topbar {
+    padding:0 20px;
+    height:52px
+  }
+  .content {
+    padding:28px 20px
+  }
+  .fields {
+    grid-template-columns:1fr
+  }
+  .controls {
+    flex-wrap:wrap
+  }
+  .controls input {
+    flex-basis:100%
+  }
+}
