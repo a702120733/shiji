@@ -112,6 +112,15 @@ main {
   margin:auto;
   padding:40px 42px 100px
 }
+.platform-back {
+  display:inline-block;
+  margin:-14px 0 24px;
+  color:var(--muted);
+  font-size:12px
+}
+.platform-back:hover {
+  color:var(--red)
+}
 header {
   display:flex;
   justify-content:space-between;

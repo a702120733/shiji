@@ -1,9 +1,9 @@
 (() => {
   const $ = id => document.getElementById(id);
   const names = {liked: '点赞笔记', saved: '收藏笔记', following: '关注账号'};
-  const stages = ['settings', 'connect', 'progress', 'done'];
+  const stages = ['platform', 'settings', 'connect', 'progress', 'done'];
   let status = null;
-  let current = 'settings';
+  let current = 'platform';
   let timer = null;
 
   async function request(path, payload) {
@@ -45,13 +45,17 @@
 
   function show(stage) {
     current = stage;
+    $('import-steps').hidden = stage === 'platform';
     for (const name of stages) {
       $(name + '-stage').hidden = name !== stage;
       const step = document.querySelector(`[data-step="${name}"]`);
-      step.classList.toggle('active', name === stage);
-      step.classList.toggle('complete', stages.indexOf(name) < stages.indexOf(stage));
+      if (step) {
+        step.classList.toggle('active', name === stage);
+        step.classList.toggle('complete', stages.indexOf(name) < stages.indexOf(stage));
+      }
     }
     const heading = {
+      platform: ['YOUR PERSONAL INSPIRATION ARCHIVE', '先选择要导入的平台。', '选择软件，再进入对应的导入流程。'],
       settings: ['YOUR PERSONAL INSPIRATION ARCHIVE', '让喜欢过的内容，成为你的资料库。', '选择要导入的内容，再连接你已登录的小红书。'],
       connect: ['CONNECT YOUR INSPIRATION', '连接你的小红书', '在小红书官方网页完成登录，无需向拾集提供账号密码。'],
       progress: ['COLLECTING THE THINGS YOU LOVE', '你的灵感，正在归位', '正在读取可访问内容并保存到这台设备。'],
@@ -191,6 +195,8 @@
   }
   function startPolling() { if (!timer) timer = setInterval(poll, 1500); poll(); }
 
+  $('choose-xhs').addEventListener('click', () => { notice(''); show('settings'); });
+  $('back-platform').addEventListener('click', () => { notice(''); show('platform'); });
   $('to-connect').addEventListener('click', async () => {
     notice('');
     try {
@@ -220,7 +226,7 @@
     catch (error) { notice(error.message); }
   });
   $('retry-import').addEventListener('click', () => { notice(''); show('settings'); });
-  $('new-import').addEventListener('click', () => { notice(''); show('settings'); });
+  $('new-import').addEventListener('click', () => { notice(''); show(status?.account_test ? 'settings' : 'platform'); });
   document.querySelectorAll('input[name="source"]').forEach(input => input.addEventListener('change', selectionChanged));
   request('/api/status').then(value => {
     status = value;
@@ -249,7 +255,7 @@
     updateNavigation(value);
     $('import-type').textContent = value.libraries.liked.visible || value.libraries.saved.visible || value.following_count ? '增量导入' : '首次导入';
     if (value.job.state === 'running' || value.job.state === 'failed' || value.job.state === 'cancelled') show('progress');
-    else if (value.job.state === 'complete' || value.job.state === 'partial') { show('done'); renderJob(value.job); }
-    else show('settings');
+    else if (value.account_test && (value.job.state === 'complete' || value.job.state === 'partial')) { show('done'); renderJob(value.job); }
+    else show(value.account_test ? 'settings' : 'platform');
   }).catch(error => notice(error.message));
 })();

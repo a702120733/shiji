@@ -225,6 +225,9 @@ main {
   margin:0 auto;
   padding:32px 40px 36px
 }
+.stage[hidden],.steps[hidden] {
+  display:none!important
+}
 .heading {
   margin-bottom:24px
 }
@@ -243,6 +246,121 @@ main {
   font-size:12px;
   color:var(--muted);
   margin:0
+}
+.platform-heading {
+  margin:12px 0 20px
+}
+.platform-heading h2 {
+  font-size:18px;
+  margin:0 0 5px
+}
+.platform-heading p,.platform-note {
+  color:var(--muted);
+  font-size:12px;
+  margin:0
+}
+.platform-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px
+}
+.platform-card {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:22px;
+  min-height:246px;
+  padding:24px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fff;
+  color:var(--ink);
+  text-align:left;
+  box-shadow:0 2px 12px #211e1808;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease
+}
+button.platform-card,a.platform-card {
+  cursor:pointer
+}
+button.platform-card:hover,a.platform-card:hover {
+  transform:translateY(-3px);
+  border-color:#e9a1a8;
+  box-shadow:0 9px 26px #211e1814
+}
+.platform-card:focus-visible {
+  outline:2px solid var(--red);
+  outline-offset:3px
+}
+.platform-icon {
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  border-radius:15px;
+  font-size:24px;
+  font-weight:700
+}
+.platform-icon-xhs {
+  background:#ffebed;
+  color:var(--red)
+}
+.platform-icon-chrome {
+  background:conic-gradient(#e5b63a 0deg 120deg,#69a875 120deg 240deg,#e7645f 240deg 360deg);
+  border-radius:50%
+}
+.platform-icon-chrome span {
+  width:27px;
+  height:27px;
+  border:3px solid white;
+  border-radius:50%;
+  background:#6da3d7
+}
+.platform-icon-douyin {
+  background:#ededea;
+  color:#777770
+}
+.platform-card-copy {
+  display:flex;
+  flex-direction:column;
+  gap:5px
+}
+.platform-card-copy strong {
+  font-size:20px
+}
+.platform-card-copy small {
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5
+}
+.platform-card-copy em {
+  display:inline-block;
+  vertical-align:middle;
+  margin-left:4px;
+  padding:4px 8px;
+  border-radius:6px;
+  background:#efefec;
+  color:#777770;
+  font-size:10px;
+  font-style:normal;
+  font-weight:500
+}
+.platform-card-action {
+  margin-top:auto;
+  color:var(--red);
+  font-size:12px;
+  font-weight:600
+}
+.platform-card-soon {
+  background:#f4f3f0;
+  color:#777770;
+  box-shadow:none;
+  cursor:default
+}
+.platform-card-soon .platform-card-action {
+  color:#999991
+}
+.platform-note {
+  margin-top:20px
 }
 .steps {
   height:62px;
@@ -869,6 +987,9 @@ main {
   .settings-grid,.connect-grid {
     grid-template-columns:1fr
   }
+  .platform-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr))
+  }
   .editorial {
     display:none
   }
@@ -880,6 +1001,13 @@ main {
   }
 }
 @media(max-width:720px) {
+  .platform-grid {
+    grid-template-columns:1fr
+  }
+  .platform-card {
+    min-height:174px;
+    gap:12px
+  }
   .app-shell {
     display:block
   }

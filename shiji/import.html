@@ -33,13 +33,23 @@
     <main>
       <div class="topbar"><span>我的空间 <span class="chevron">›</span> <strong>导入中心</strong></span><span class="top-status">仅在这台设备保存</span></div>
       <div class="content">
-        <div class="heading"><div class="eyebrow" id="eyebrow">YOUR PERSONAL INSPIRATION ARCHIVE</div><h1 id="page-title">让喜欢过的内容，成为你的资料库。</h1><p id="page-description">选择要导入的内容，再连接你已登录的小红书。</p></div>
-        <div class="steps" aria-label="导入进度"><div class="step active" data-step="settings"><span>01</span>设置导入</div><div class="step" data-step="connect"><span>02</span>验证登录</div><div class="step" data-step="progress"><span>03</span>抓取与整理</div><div class="step" data-step="done"><span>04</span>开始管理</div></div>
+        <div class="heading"><div class="eyebrow" id="eyebrow">YOUR PERSONAL INSPIRATION ARCHIVE</div><h1 id="page-title">先选择要导入的平台。</h1><p id="page-description">选择软件，再进入对应的导入流程。</p></div>
+        <div class="steps" id="import-steps" aria-label="小红书导入进度" hidden><div class="step active" data-step="settings"><span>01</span>设置导入</div><div class="step" data-step="connect"><span>02</span>验证登录</div><div class="step" data-step="progress"><span>03</span>抓取与整理</div><div class="step" data-step="done"><span>04</span>开始管理</div></div>
         <div id="demo-banner" class="demo-banner" role="status" hidden>导入流程测试环境 · 仅模拟连接与导入，不读取真实小红书或 Chrome 数据。</div>
         <div id="account-test-banner" class="demo-banner" role="status" hidden>新账号授权导入测试 · 这里会读取你接下来授权的小红书账号，资料单独保存在测试目录，不会合并到原账号。<a id="previous-account-banner" href="#" hidden>返回原账号 →</a></div>
         <div id="notice" class="notice" role="status" hidden></div>
 
-        <section class="stage" id="settings-stage" aria-labelledby="settings-title">
+        <section class="stage" id="platform-stage" aria-labelledby="platform-title">
+          <div class="platform-heading"><h2 id="platform-title">选择平台</h2><p>每个平台的授权与导入步骤会单独说明。</p></div>
+          <div class="platform-grid">
+            <button type="button" class="platform-card" id="choose-xhs"><span class="platform-icon platform-icon-xhs">小</span><span class="platform-card-copy"><strong>小红书</strong><small>导入点赞、收藏与关注账号</small></span><span class="platform-card-action">进入导入流程 <span aria-hidden="true">↗</span></span></button>
+            <a class="platform-card" href="/bookmarks.html"><span class="platform-icon platform-icon-chrome" aria-hidden="true"><span></span></span><span class="platform-card-copy"><strong>Chrome</strong><small>授权导入浏览器收藏夹</small></span><span class="platform-card-action">进入导入流程 <span aria-hidden="true">↗</span></span></a>
+            <div class="platform-card platform-card-soon" aria-disabled="true"><span class="platform-icon platform-icon-douyin" aria-hidden="true">♪</span><span class="platform-card-copy"><strong>抖音 <em>即将上线</em></strong><small>内容导入功能正在准备中</small></span><span class="platform-card-action">暂不可用</span></div>
+          </div>
+          <p class="platform-note">导入的内容保存在本机；选择平台后再查看具体授权范围。</p>
+        </section>
+
+        <section class="stage" id="settings-stage" aria-labelledby="settings-title" hidden>
           <div class="settings-grid">
             <div class="panel setup-panel">
               <div class="panel-heading"><div><h2 id="settings-title">开始一次灵感整理</h2><p>选择要带走的内容，其余交给拾集。</p></div><span class="badge" id="import-type">首次导入</span></div>
@@ -60,6 +70,7 @@
             </div>
             <div class="editorial"><div class="editorial-box"><h2>喜欢过的生活，<br>都有迹可循。</h2><p>一处收藏，慢慢长成你的灵感地图。</p><div class="editorial-art"><span>✦</span><span>▧</span><span>◌</span></div></div><h3>让整理，变得轻一点</h3><p>自动归档 · 原图与视频保存 · 由你决定同步</p></div>
           </div>
+          <button class="back-link" id="back-platform" type="button">← 返回平台选择</button>
         </section>
 
         <section class="stage" id="connect-stage" hidden aria-labelledby="connect-title">
