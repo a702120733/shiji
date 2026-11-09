@@ -5,26 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8f7f4">
-  <title>拾集 · 连接本机资料库</title>
+  <meta name="description" content="选择程序，关联账号并导入，把喜欢过的内容整理成自己的资料库。">
+  <title>选择程序 · 拾集</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/cloud.css">
   <script src="/bridge.js" defer></script>
 </head>
 <body>
-  <main class="shell">
-    <div class="brand"><span class="mark" aria-hidden="true">▯</span><strong>拾集</strong><small>SHIJI</small></div>
-    <div class="content">
-      <p class="eyebrow">YOUR SPACE, YOUR DEVICE</p>
-      <h1>灵感在这里，<br>资料留在你的电脑。</h1>
-      <p class="intro">网页界面由本站提供；点赞、收藏、关注、Chrome 书签、图片和视频由你电脑上的拾集服务保存。连接后，浏览器会直接读取本机资料。</p>
-      <div class="panel">
-        <div class="step"><span>01</span><div><strong>启动本机拾集</strong><p>首次使用先按安装说明运行本机服务。以后需要浏览资料时，保持本机服务运行。</p></div></div>
-        <div class="step"><span>02</span><div><strong>确认连接</strong><p>点击下方按钮，在本机弹出的确认页授权当前站点访问你的资料库。</p></div></div>
-        <div class="actions"><button id="connect" type="button">连接本机资料库 <span aria-hidden="true">↗</span></button><a href="https://github.com/a702120733/shiji#%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8" target="_blank" rel="noopener noreferrer">查看安装说明</a></div>
-        <p id="message" class="message" role="status" aria-live="polite"></p>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="拾集首页"><span class="mark" aria-hidden="true">▯</span><strong>拾集</strong><small>SHIJI</small></a>
+      <button class="library-entry" id="open-library" type="button"><span aria-hidden="true">▤</span>读取本机资料<span class="entry-arrow" aria-hidden="true">↗</span></button>
+    </header>
+
+    <main class="content">
+      <div class="intro-block">
+        <p class="eyebrow">YOUR SPACE, YOUR DEVICE</p>
+        <h1>让喜欢过的内容，<br>成为自己的资料库。</h1>
+        <p class="intro">选择程序，关联账号或授权浏览器，然后导入内容。拾集会帮你保存素材、整理分类，资料始终留在你的电脑上。</p>
       </div>
-      <p class="footnote">本站不代理或存储个人资料。启用自动分类时，本机服务会按你的设置调用模型服务。</p>
-    </div>
-  </main>
+
+      <section class="platform-section" aria-labelledby="platform-title">
+        <div class="section-heading"><div><span class="section-index">01 / 选择程序</span><h2 id="platform-title">选择要导入的程序</h2></div><span class="section-hint">选择后查看授权与导入范围</span></div>
+        <div class="platform-grid">
+          <button class="platform-card" id="choose-xhs" type="button">
+            <span class="platform-mark xhs" aria-hidden="true">小</span>
+            <span class="platform-copy"><strong>小红书</strong><small>点赞、收藏与关注账号</small></span>
+            <span class="platform-action">关联账号并导入 <span aria-hidden="true">↗</span></span>
+          </button>
+          <button class="platform-card" id="choose-chrome" type="button">
+            <span class="platform-mark chrome" aria-hidden="true"><span></span></span>
+            <span class="platform-copy"><strong>Chrome</strong><small>浏览器收藏夹</small></span>
+            <span class="platform-action">授权读取并导入 <span aria-hidden="true">↗</span></span>
+          </button>
+          <button class="platform-card soon" type="button" disabled aria-label="抖音，导入功能即将上线">
+            <span class="platform-mark douyin" aria-hidden="true">♪</span>
+            <span class="platform-copy"><strong>抖音 <em>即将上线</em></strong><small>内容导入功能正在准备中</small></span>
+            <span class="platform-action">暂不可用</span>
+          </button>
+        </div>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </section>
+
+      <div class="setup-note"><span class="setup-icon" aria-hidden="true">↘</span><p>首次使用？先在这台电脑启动拾集本机服务。选定平台后，网页会请你确认连接。</p><a href="https://github.com/a702120733/shiji#%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8" target="_blank" rel="noopener noreferrer">查看安装说明 ↗</a></div>
+      <p class="footnote">本站不代理或存储账号资料、书签、图片与视频。启用自动分类时，本机服务会按你的设置调用模型服务。</p>
+    </main>
+  </div>
 </body>
 </html>

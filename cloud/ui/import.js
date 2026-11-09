@@ -2,6 +2,7 @@
   const $ = id => document.getElementById(id);
   const names = {liked: '点赞笔记', saved: '收藏笔记', following: '关注账号'};
   const stages = ['platform', 'settings', 'connect', 'progress', 'done'];
+  const xhsShortcut = new URLSearchParams(location.search).get('platform') === 'xhs';
   let status = null;
   let current = 'platform';
   let timer = null;
@@ -196,7 +197,11 @@
   function startPolling() { if (!timer) timer = setInterval(poll, 1500); poll(); }
 
   $('choose-xhs').addEventListener('click', () => { notice(''); show('settings'); });
-  $('back-platform').addEventListener('click', () => { notice(''); show('platform'); });
+  $('back-platform').addEventListener('click', () => {
+    notice('');
+    if (xhsShortcut) location.assign('/');
+    else show('platform');
+  });
   $('to-connect').addEventListener('click', async () => {
     notice('');
     try {
@@ -226,7 +231,7 @@
     catch (error) { notice(error.message); }
   });
   $('retry-import').addEventListener('click', () => { notice(''); show('settings'); });
-  $('new-import').addEventListener('click', () => { notice(''); show(status?.account_test ? 'settings' : 'platform'); });
+  $('new-import').addEventListener('click', () => { notice(''); show(status?.account_test || xhsShortcut ? 'settings' : 'platform'); });
   document.querySelectorAll('input[name="source"]').forEach(input => input.addEventListener('change', selectionChanged));
   request('/api/status').then(value => {
     status = value;
@@ -256,6 +261,6 @@
     $('import-type').textContent = value.libraries.liked.visible || value.libraries.saved.visible || value.following_count ? '增量导入' : '首次导入';
     if (value.job.state === 'running' || value.job.state === 'failed' || value.job.state === 'cancelled') show('progress');
     else if (value.account_test && (value.job.state === 'complete' || value.job.state === 'partial')) { show('done'); renderJob(value.job); }
-    else show(value.account_test ? 'settings' : 'platform');
+    else show(value.account_test || xhsShortcut ? 'settings' : 'platform');
   }).catch(error => notice(error.message));
 })();

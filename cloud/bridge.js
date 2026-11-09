@@ -1,9 +1,14 @@
 (() => {
   'use strict';
   const LOCAL = 'http://127.0.0.1:8879';
-  const button = document.getElementById('connect');
+  const actions = {
+    xhs: document.getElementById('choose-xhs'),
+    chrome: document.getElementById('choose-chrome'),
+    library: document.getElementById('open-library'),
+  };
   const message = document.getElementById('message');
   let inProgress = false;
+  let paired = false;
 
   const tell = (text, error = false) => {
     message.textContent = text;
@@ -72,20 +77,51 @@
     return answer;
   }
 
-  button.addEventListener('click', async () => {
+  async function authorizedStatus() {
+    const response = await fetch('/api/status', {cache: 'no-store'});
+    if (!response.ok || !response.headers.get('Content-Type')?.includes('application/json')) {
+      throw new Error('本机授权已失效');
+    }
+    return response.json();
+  }
+
+  function destination(action, status) {
+    if (action === 'xhs') return '/import?platform=xhs';
+    if (action === 'chrome') return '/bookmarks.html';
+    if (status.libraries?.liked?.visible) return '/index.html';
+    if (status.libraries?.saved?.visible) return '/saved.html';
+    if (status.following_count) return '/following.html';
+    if (status.bookmarks_count) return '/bookmarks.html';
+    if (status.products_count) return '/products.html';
+    return '';
+  }
+
+  async function openAction(action) {
+    const status = await authorizedStatus();
+    const path = destination(action, status);
+    if (!path) {
+      tell('本机还没有已导入的资料。请先选择小红书或 Chrome 开始导入。');
+      return;
+    }
+    location.assign(path);
+  }
+
+  async function handleAction(action) {
     if (inProgress) return;
     inProgress = true;
-    button.disabled = true;
-    if (button.dataset.paired === 'true') {
+    for (const button of Object.values(actions)) button.disabled = true;
+    if (paired) {
       try {
-        tell('正在打开本机资料库…');
+        tell('正在读取本机连接…');
         await healthCheck();
-        location.assign('/import');
-      } catch {
-        button.dataset.paired = 'false';
-        button.innerHTML = '连接本机资料库 <span aria-hidden="true">↗</span>';
-        tell('本机连接已失效，请再次点击并在本机确认。', true);
-      } finally { button.disabled = false; inProgress = false; }
+        await openAction(action);
+      } catch (error) {
+        paired = false;
+        tell(`${error.message}。请再次点击并在本机确认。`, true);
+      } finally {
+        for (const button of Object.values(actions)) button.disabled = false;
+        inProgress = false;
+      }
       return;
     }
     tell('正在等待本机确认…');
@@ -93,7 +129,7 @@
     const popup = window.open(`${LOCAL}/cloud-pair?origin=${encodeURIComponent(location.origin)}`, 'shiji-cloud-pair', 'popup,width=470,height=570');
     if (!popup) {
       tell('浏览器阻止了本机确认窗口，请允许此站点打开弹窗后重试', true);
-      button.disabled = false;
+      for (const button of Object.values(actions)) button.disabled = false;
       inProgress = false;
       return;
     }
@@ -104,24 +140,26 @@
       pairing.catch(() => {});
       await healthCheck();
       const token = await pairing;
-      tell('已授权，正在打开资料库…');
+      tell('已授权，正在打开所选内容…');
       await configureWorker(token);
-      location.assign('/import');
+      paired = true;
+      await openAction(action);
     } catch (error) {
+      if (!popup.closed) popup.close();
       tell(`${error.message}。请确认本机服务已启动，并允许浏览器连接本机网络。`, true);
     } finally {
-      button.disabled = false;
+      for (const button of Object.values(actions)) button.disabled = false;
       inProgress = false;
     }
-  });
+  }
+
+  actions.xhs.addEventListener('click', () => handleAction('xhs'));
+  actions.chrome.addEventListener('click', () => handleAction('chrome'));
+  actions.library.addEventListener('click', () => handleAction('library'));
 
   if (new URL(location.href).searchParams.get('reason') === 'offline') {
     tell('本机拾集未连接或授权已过期，请重新连接。', true);
   } else if ('serviceWorker' in navigator) {
-    hasStoredPairing().then(paired => {
-      if (!paired) return;
-      button.dataset.paired = 'true';
-      button.innerHTML = '打开我的资料库 <span aria-hidden="true">↗</span>';
-    }).catch(() => {});
+    hasStoredPairing().then(value => { paired = value; }).catch(() => {});
   }
 })();

@@ -1,28 +1,89 @@
-:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#282823;background:#f8f7f4}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh}
-.shell{max-width:1120px;margin:0 auto;padding:36px 48px 80px}
-.brand{display:flex;align-items:center;gap:10px;font-size:25px;letter-spacing:-.05em}
-.brand small{margin-left:2px;color:#898983;font-size:10px;letter-spacing:.07em;font-weight:500}
-.mark{width:36px;height:36px;border-radius:10px;background:#e83546;color:#fff;display:grid;place-items:center;font-size:26px;font-weight:300}
-.content{max-width:730px;margin:clamp(56px,10vh,120px) 0 0 8%}
-.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;color:#dc3545;margin:0 0 18px}
-h1{font-size:clamp(38px,5vw,66px);letter-spacing:-.06em;line-height:1.2;margin:0 0 24px}
-.intro{max-width:650px;color:#65655f;line-height:1.9;font-size:16px;margin:0 0 38px}
-.panel{background:#fff;border:1px solid #e9e6df;border-radius:17px;padding:28px 32px;box-shadow:0 12px 36px rgba(25,25,20,.035)}
-.step{display:flex;gap:20px;padding:6px 0 22px}
-.step+.step{border-top:1px solid #eeece7;padding-top:22px}
-.step>span{font-size:12px;font-weight:700;color:#df3446;border:1px solid #f1c8cd;border-radius:100%;flex:none;width:31px;height:31px;display:grid;place-items:center}
-.step strong{font-size:16px}
-.step p{font-size:14px;line-height:1.7;color:#777772;margin:7px 0 0}
-.actions{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:6px}
-button{appearance:none;border:0;border-radius:9px;background:#292925;color:#fff;padding:14px 19px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
-button:hover{background:#45453f}
-button:disabled{opacity:.55;cursor:wait}
-button span{margin-left:10px}
-a{font-size:14px;color:#555550;text-decoration:none}
-a:hover{text-decoration:underline}
-.message{min-height:1.6em;margin:16px 0 0;font-size:14px;color:#516f52}
-.message.error{color:#b63241}
-.footnote{color:#92928a;font-size:12px;line-height:1.7;margin-top:18px}
-@media(max-width:700px){.shell{padding:24px 22px 60px}.content{margin:62px 0 0}.panel{padding:23px}.intro{font-size:15px}.actions{align-items:flex-start;flex-direction:column;gap:16px}}
+:root {
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #282823;
+  background: #f8f7f4;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; }
+button:focus-visible, a:focus-visible { outline: 3px solid #e83546; outline-offset: 4px; }
+
+.shell { max-width: 1180px; margin: 0 auto; padding: 34px 48px 74px; }
+.site-header { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+.brand strong { font-size: 25px; letter-spacing: -.05em; }
+.brand small { margin-left: 2px; color: #898983; font-size: 10px; letter-spacing: .07em; font-weight: 500; }
+.mark { width: 36px; height: 36px; border-radius: 10px; background: #e83546; color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 300; }
+.library-entry { display: inline-flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid #dedbd4; border-radius: 10px; background: #fff; color: #4d4d47; font-size: 13px; font-weight: 600; cursor: pointer; }
+.library-entry:hover { border-color: #b9b5aa; background: #fdfcf9; }
+.library-entry .entry-arrow { margin-left: 3px; color: #898983; }
+
+.content { margin: clamp(68px, 10vh, 112px) 0 0; }
+.intro-block { max-width: 740px; }
+.eyebrow { margin: 0 0 17px; color: #df3446; font-size: 11px; font-weight: 700; letter-spacing: .18em; }
+h1 { margin: 0 0 21px; font-size: clamp(36px, 4.8vw, 62px); line-height: 1.2; letter-spacing: -.06em; }
+.intro { max-width: 690px; margin: 0; color: #65655f; font-size: 16px; line-height: 1.85; }
+
+.platform-section { margin-top: 67px; }
+.section-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 21px; }
+.section-index { color: #d83d4b; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+h2 { margin: 8px 0 0; font-size: 25px; letter-spacing: -.04em; line-height: 1.3; }
+.section-hint { padding-bottom: 3px; color: #92918a; font-size: 13px; white-space: nowrap; }
+.platform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.platform-card { appearance: none; display: flex; flex-direction: column; align-items: flex-start; text-align: left; min-height: 226px; padding: 25px 26px 23px; border: 1px solid #e7e4de; border-radius: 16px; background: #fff; color: inherit; box-shadow: 0 8px 28px rgba(25, 25, 20, .025); cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.platform-card:hover:not(:disabled) { border-color: #d8a4aa; box-shadow: 0 15px 35px rgba(49, 37, 35, .065); transform: translateY(-3px); }
+.platform-mark { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 12px; font-size: 22px; font-weight: 650; }
+.platform-mark.xhs { color: #fff; background: #e83546; }
+.platform-mark.chrome { position: relative; background: conic-gradient(#f5bc25 0 120deg, #36a56a 120deg 240deg, #ea5847 240deg); }
+.platform-mark.chrome span { width: 21px; height: 21px; border: 3px solid #fff; border-radius: 50%; background: #4b8ee0; }
+.platform-mark.douyin { color: #fff; background: #363638; font-size: 27px; }
+.platform-copy { display: flex; flex-direction: column; gap: 6px; margin-top: 24px; }
+.platform-copy strong { font-size: 20px; letter-spacing: -.035em; }
+.platform-copy small { color: #777770; font-size: 13px; line-height: 1.5; }
+.platform-copy em { display: inline-block; margin-left: 5px; padding: 3px 6px; border-radius: 5px; background: #eeece8; color: #88877f; font-size: 10px; font-style: normal; font-weight: 500; vertical-align: 3px; }
+.platform-action { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; padding-top: 20px; color: #cf3443; font-size: 13px; font-weight: 650; }
+.platform-action span { font-size: 17px; font-weight: 400; }
+.platform-card.soon { background: #f4f3ef; border-color: #eceae4; box-shadow: none; cursor: not-allowed; }
+.platform-card.soon .platform-action { color: #999890; font-weight: 500; }
+.message { min-height: 1.6em; margin: 16px 0 0; color: #516f52; font-size: 14px; }
+.message.error { color: #b63241; }
+
+.setup-note { display: flex; align-items: center; gap: 15px; margin-top: 38px; padding: 19px 21px; border: 1px solid #e9e6df; border-radius: 12px; background: #f2f0eb; }
+.setup-icon { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border: 1px solid #dedbd4; border-radius: 9px; color: #75736b; font-size: 18px; }
+.setup-note p { flex: 1; margin: 0; color: #696861; font-size: 13px; line-height: 1.6; }
+.setup-note a { flex: none; color: #3f3f3a; font-size: 13px; font-weight: 650; text-decoration: none; }
+.setup-note a:hover { text-decoration: underline; }
+.footnote { margin: 17px 0 0; color: #92928a; font-size: 12px; line-height: 1.7; }
+
+@media (max-width: 850px) {
+  .shell { padding: 25px 26px 60px; }
+  .content { margin-top: 66px; }
+  .platform-grid { grid-template-columns: 1fr; gap: 12px; }
+  .platform-card { min-height: 155px; padding: 19px 20px; }
+  .platform-copy { margin-top: 15px; }
+  .platform-action { padding-top: 10px; }
+  .setup-note { align-items: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .shell { padding: 21px 20px 48px; }
+  .site-header { flex-wrap: wrap; gap: 16px; }
+  .brand strong { font-size: 23px; }
+  .library-entry { margin-left: auto; padding: 9px 10px; font-size: 12px; }
+  .content { margin-top: 58px; }
+  h1 { font-size: clamp(34px, 8vw, 43px); }
+  .intro { font-size: 14px; }
+  .platform-section { margin-top: 49px; }
+  .section-heading { display: block; }
+  .section-hint { display: block; margin-top: 9px; }
+  .setup-note { flex-wrap: wrap; gap: 11px; padding: 17px; }
+  .setup-note p { flex-basis: calc(100% - 44px); }
+  .setup-note a { margin-left: 43px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .platform-card { transition: none; }
+}
