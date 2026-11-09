@@ -21,6 +21,7 @@ from library import parse_json
 import library as library_module
 from analysis_engine import analyze_note, codex_binary
 from chrome_bookmarks import current_profile, read_bookmarks
+from cloud_bridge import CloudBridge
 from local_content import parse_chrome_export, validate_product
 
 # library-server.py is kept under its historical name for the existing viewer.
@@ -455,19 +456,67 @@ class ImportManager:
 
 
 class AppHandler(library_server.LibraryHandler):
+    def end_headers(self):
+        bridge = self.server.cloud_bridge
+        if bridge.origin and self.headers.get('Origin') == bridge.origin:
+            self.send_header('Access-Control-Allow-Origin', bridge.origin)
+            self.send_header('Vary', 'Origin')
+            self.send_header('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range, Content-Length')
+        super().end_headers()
+
     def _host_allowed(self):
         host = self.headers.get('Host', '')
         return host in (f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}')
 
     def _origin_allowed(self):
         origin = self.headers.get('Origin')
-        return origin in (f'http://127.0.0.1:{self.server.server_port}',
-                          f'http://localhost:{self.server.server_port}')
+        if origin in (f'http://127.0.0.1:{self.server.server_port}',
+                      f'http://localhost:{self.server.server_port}'):
+            return True
+        return self.server.cloud_bridge.accepts(origin, self.headers.get('X-Shiji-Token'))
+
+    def do_OPTIONS(self):
+        bridge = self.server.cloud_bridge
+        origin = self.headers.get('Origin')
+        method = self.headers.get('Access-Control-Request-Method', '').upper()
+        requested = {item.strip().lower() for item in
+                     self.headers.get('Access-Control-Request-Headers', '').split(',') if item.strip()}
+        if (not self._host_allowed() or not bridge.origin or origin != bridge.origin
+                or method not in ('GET', 'POST')
+                or not requested <= {'content-type', 'x-shiji-token', 'range'}):
+            return self.send_error(403, 'Forbidden')
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Shiji-Token, Range')
+        self.send_header('Access-Control-Max-Age', '600')
+        self.send_header('Cache-Control', 'no-store')
+        self.send_header('Content-Length', '0')
+        self.end_headers()
 
     def do_GET(self):
         if not self._host_allowed():
             return self.send_error(403, 'Local access only')
         path = unquote(urlsplit(self.path).path)
+        bridge = self.server.cloud_bridge
+        origin = self.headers.get('Origin')
+        if path == '/api/cloud-health' and bridge.origin and origin == bridge.origin:
+            return self.json_response({'ready': True})
+        if origin and not self._origin_allowed():
+            return self.json_response({'error': '网站尚未获准连接本机资料库'}, 403)
+        if path == '/cloud-pair' and bridge.origin and parse_qs(urlsplit(self.path).query).get('origin') == [bridge.origin]:
+            if origin:
+                return self.send_error(403, 'Open this page directly')
+            data = bridge.pairing_page()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store')
+            self.send_header('Referrer-Policy', 'no-referrer')
+            self.send_header('X-Content-Type-Options', 'nosniff')
+            self.send_header('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'")
+            self.send_header('Content-Length', str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if path in ('/', '/import', '/import.html'):
             return self._asset('import.html', 'text/html; charset=utf-8')
         if path == '/import.css':
@@ -563,6 +612,18 @@ class AppHandler(library_server.LibraryHandler):
         if not self._host_allowed() or not self._origin_allowed():
             return self.json_response({'error': '仅接受本机页面请求'}, 403)
         path = urlsplit(self.path).path
+        if path == '/api/cloud-pair':
+            try:
+                content_length = int(self.headers.get('Content-Length', '0'))
+            except ValueError:
+                content_length = -1
+            if (not self.server.cloud_bridge.origin
+                    or self.headers.get('Origin') not in (f'http://127.0.0.1:{self.server.server_port}',
+                                                           f'http://localhost:{self.server.server_port}')
+                    or self.headers.get_content_type() != 'application/json'
+                    or not 0 <= content_length <= 64):
+                return self.json_response({'error': '无法授权此页面'}, 403)
+            return self.json_response({'token': self.server.cloud_bridge.issue()})
         if path in ('/api/groups', '/api/trash') and parse_qs(urlsplit(self.path).query).get('source') == ['saved']:
             if self.headers.get_content_type() != 'application/json':
                 return self.json_response({'error': '需要JSON格式'}, 415)
@@ -652,6 +713,10 @@ def main():
                             excluded_profile_id=excluded, previous_account_url=previous_url)
     server = ThreadingHTTPServer(('127.0.0.1', args.port), partial(AppHandler, directory=str(manager.root)))
     server.import_manager = manager
+    try:
+        server.cloud_bridge = CloudBridge(os.environ.get('SHIJI_CLOUD_ORIGIN', ''))
+    except ValueError as exc:
+        parser.error(str(exc))
     server.group_store = library_server.GroupStore(manager.root / 'liked')
     server.trash_store = library_server.TrashStore(manager.root / 'liked')
     print(f'Shiji: http://127.0.0.1:{args.port}/import', flush=True)

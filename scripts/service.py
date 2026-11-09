@@ -27,6 +27,13 @@ def install(demo=False, account_test_profile=''):
     agent = Path.home() / 'Library' / 'LaunchAgents' / f'{label}.plist'
     target = f'gui/{os.getuid()}/{label}'
     port = 8880 if account_test else 8879
+    previous_cloud_origin = ''
+    if agent.is_file():
+        try:
+            previous_cloud_origin = plistlib.loads(agent.read_bytes()).get('EnvironmentVariables', {}).get('SHIJI_CLOUD_ORIGIN', '')
+        except (OSError, ValueError, TypeError):
+            pass
+    cloud_origin = '' if demo or account_test else os.environ.get('SHIJI_CLOUD_ORIGIN', previous_cloud_origin)
     run('bootout', target, check=False)
     RUNTIME.mkdir(parents=True, exist_ok=True)
     data_dir = RUNTIME / ('account-test-data' if account_test else 'demo-data' if demo else 'data')
@@ -46,6 +53,7 @@ def install(demo=False, account_test_profile=''):
                                  'SHIJI_DATA_DIR': str(data_dir),
                                  'SHIJI_DEMO_MODE': '1' if demo else '0',
                                  'SHIJI_PORT': str(port),
+                                 'SHIJI_CLOUD_ORIGIN': cloud_origin,
                                  'SHIJI_EXCLUDE_PROFILE_ID': account_test_profile,
                                  'SHIJI_PREVIOUS_ACCOUNT_URL': os.environ.get('SHIJI_PREVIOUS_ACCOUNT_URL', '') if account_test else ''},
         'RunAtLoad': True,

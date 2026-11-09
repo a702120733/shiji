@@ -1,0 +1,28 @@
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#282823;background:#f8f7f4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+.shell{max-width:1120px;margin:0 auto;padding:36px 48px 80px}
+.brand{display:flex;align-items:center;gap:10px;font-size:25px;letter-spacing:-.05em}
+.brand small{margin-left:2px;color:#898983;font-size:10px;letter-spacing:.07em;font-weight:500}
+.mark{width:36px;height:36px;border-radius:10px;background:#e83546;color:#fff;display:grid;place-items:center;font-size:26px;font-weight:300}
+.content{max-width:730px;margin:clamp(56px,10vh,120px) 0 0 8%}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;color:#dc3545;margin:0 0 18px}
+h1{font-size:clamp(38px,5vw,66px);letter-spacing:-.06em;line-height:1.2;margin:0 0 24px}
+.intro{max-width:650px;color:#65655f;line-height:1.9;font-size:16px;margin:0 0 38px}
+.panel{background:#fff;border:1px solid #e9e6df;border-radius:17px;padding:28px 32px;box-shadow:0 12px 36px rgba(25,25,20,.035)}
+.step{display:flex;gap:20px;padding:6px 0 22px}
+.step+.step{border-top:1px solid #eeece7;padding-top:22px}
+.step>span{font-size:12px;font-weight:700;color:#df3446;border:1px solid #f1c8cd;border-radius:100%;flex:none;width:31px;height:31px;display:grid;place-items:center}
+.step strong{font-size:16px}
+.step p{font-size:14px;line-height:1.7;color:#777772;margin:7px 0 0}
+.actions{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:6px}
+button{appearance:none;border:0;border-radius:9px;background:#292925;color:#fff;padding:14px 19px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+button:hover{background:#45453f}
+button:disabled{opacity:.55;cursor:wait}
+button span{margin-left:10px}
+a{font-size:14px;color:#555550;text-decoration:none}
+a:hover{text-decoration:underline}
+.message{min-height:1.6em;margin:16px 0 0;font-size:14px;color:#516f52}
+.message.error{color:#b63241}
+.footnote{color:#92928a;font-size:12px;line-height:1.7;margin-top:18px}
+@media(max-width:700px){.shell{padding:24px 22px 60px}.content{margin:62px 0 0}.panel{padding:23px}.intro{font-size:15px}.actions{align-items:flex-start;flex-direction:column;gap:16px}}

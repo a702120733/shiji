@@ -33,6 +33,8 @@ cd shiji
 
 macOS 上本地数据默认写入 `~/Library/Application Support/Shiji/data/`。可通过 `SHIJI_DATA_DIR=/绝对路径 ./run.sh` 和 `SHIJI_PORT=端口号 ./run.sh` 调整。服务只监听 `127.0.0.1`，默认端口不会占用现有本机资料库的 8765。
 
+如果想发布网页但让账号资料继续保存在每位用户的电脑上，参见[云端界面与本机数据](docs/cloud-local.md)。`cloud/` 只包含公开的界面与连接代码；笔记、原图、视频、书签、账号信息和导入任务仍由本机服务管理。线上网页须在运行本机服务的**同一台电脑**上打开，并由用户主动配对。
+
 如需登录后自动启动并在意外退出后重启，在 macOS 上运行 `./.venv/bin/python scripts/service.py install`；移除登录项运行 `./.venv/bin/python scripts/service.py uninstall`。安装时会把运行代码和虚拟环境复制到 `~/Library/Application Support/Shiji/`，避免 macOS 登录项无法读取 Documents 下的项目；数据和日志也保存在该目录。更新项目代码后重新运行 `install` 即可同步运行副本。启用前请先停止手动运行的 `./run.sh`，避免端口冲突。
 
 只检查导入界面时，可改用 `./.venv/bin/python scripts/service.py install-demo`。它在 8879 端口展示醒目的测试标识，数据写入独立的 `~/Library/Application Support/Shiji/demo-data/`；登录和导入步骤只做模拟，Chrome 书签读取接口也会拒绝访问真实配置。用 `install` 切回可实际导入的版本，两种模式都不会使用其他资料库目录。
@@ -68,6 +70,7 @@ Chrome 收藏夹入口是 `/bookmarks.html`。点击“授权读取并自动导�
 - OpenCLI 适配器以 `shiji-*` 独立名称安装到用户的 `~/.opencli/clis/xiaohongshu/`，不会覆盖现有的 `library-*` 或 `following-list` 适配器。它们仅针对小红书已登录页面执行读取，不会点赞、收藏、评论、关注或发布。
 - 自动分类仅在导入设置中开启时运行。它通过用户自己的 Codex 登录调用模型；内容会发送给该模型服务，分析记录和素材副本仍保存在本机。模型调用使用只读沙箱与临时会话，不向模型提供签名链接或账号 Cookie。
 - 资料库中的 `latest-list.json` 和 `notes/*/raw.json` 可能含临时签名链接。它们被 `.gitignore` 排除，网页服务也拒绝直接返回 JSON。不要把 `data/` 放进 Git，也不要直接公开本地服务或将完整资料库部署到云端。
+- 使用云端界面时，浏览器会把已配对的本机资料发送给该网页的 JavaScript 以便展示；资料不会作为网站构建产物上传，但站点代码及其托管账号必须可信。配对仅授予指定的精确站点来源，停止本机服务可终止当前连接。
 - 书签和个人产品也可能含私人网址，`data/bookmarks.json`、`data/bookmarks-access.json` 与 `data/products.json` 以仅当前用户可读的权限写入，并由 `.gitignore` 排除。读取 Chrome 书签只发生在用户点击授权后，且只访问已授权配置的 `Bookmarks` 文件；不读取密码、Cookie 或浏览记录。浏览页面仅绑定 `127.0.0.1`。
 - 小红书网页结构、可见范围和访问限制可能变化；只保存实际读取到的内容。不绕过验证码、登录要求或安全限制。
 - 关注账号昵称可能重复。当前开源版只在来源页面提供真实主页链接时保存该链接，不会凭昵称构造 ID；未核验的关注账号仍可在本机查看但会标明待核实。

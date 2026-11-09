@@ -9,6 +9,7 @@ __pycache__/
 coverage/
 dist/
 node_modules/
+.vercel/
 *.zip
 *.tar.gz
 
