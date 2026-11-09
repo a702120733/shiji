@@ -33,7 +33,7 @@ def install(demo=False, account_test_profile=''):
             previous_cloud_origin = plistlib.loads(agent.read_bytes()).get('EnvironmentVariables', {}).get('SHIJI_CLOUD_ORIGIN', '')
         except (OSError, ValueError, TypeError):
             pass
-    cloud_origin = '' if demo or account_test else os.environ.get('SHIJI_CLOUD_ORIGIN', previous_cloud_origin)
+    cloud_origin = '' if account_test else os.environ.get('SHIJI_CLOUD_ORIGIN', previous_cloud_origin)
     run('bootout', target, check=False)
     RUNTIME.mkdir(parents=True, exist_ok=True)
     data_dir = RUNTIME / ('account-test-data' if account_test else 'demo-data' if demo else 'data')

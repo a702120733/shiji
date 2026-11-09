@@ -5,6 +5,7 @@
 ## 部署与连接
 
 1. 将开源仓库连接到 Vercel，项目的 **Root Directory** 设为 `cloud`，作为静态站点部署。不要把 `data/`、本机生成的 `liked/index.html`、`saved/index.html` 或其他个人资料上传到仓库或构建产物。部署完成后取得正式的 `https://…vercel.app` 域名。
+   修改导入页或 Chrome 页面后，先运行 `python3 scripts/build_cloud_ui.py` 同步无数据的界面文件，再提交 `cloud/ui/`。
 2. 在使用者自己的电脑安装并启动拾集；将**精确的正式域名**告诉本机服务（不含末尾斜杠）：
 
    ```bash
