@@ -23,6 +23,7 @@ from analysis_engine import analyze_note, codex_binary
 from chrome_bookmarks import current_profile, read_bookmarks
 from cloud_bridge import CloudBridge
 from local_content import parse_chrome_export, validate_product
+from local_library import LocalLibraryManager
 
 # library-server.py is kept under its historical name for the existing viewer.
 import importlib.util
@@ -89,6 +90,9 @@ class ImportManager:
         self.process = None
         self.cancel_requested = False
         self.job = {'state': 'idle', 'phase': '', 'events': [], 'counts': {}, 'error': '', 'started_at': None}
+        self.local_library = LocalLibraryManager(self.root, library_server.LibraryHandler,
+                                                 library_server.GroupStore, library_server.TrashStore,
+                                                 demo_mode=self.demo_mode)
 
     def config(self):
         return read_json(self.config_path, {'sources': ['liked'], 'limit': 100,
@@ -531,6 +535,8 @@ class AppHandler(library_server.LibraryHandler):
             return self._asset('local.js', 'text/javascript; charset=utf-8')
         if path == '/api/status':
             return self.json_response(self.server.import_manager.status())
+        if path == '/api/local-library/status':
+            return self.json_response(self.server.import_manager.local_library.status())
         if path == '/api/bookmarks':
             return self.json_response(read_json(self.server.import_manager.root / 'bookmarks.json', []))
         if path == '/api/bookmarks/access':
@@ -659,7 +665,8 @@ class AppHandler(library_server.LibraryHandler):
             return self.json_response({'opened': True})
         if path not in ('/api/settings', '/api/connect', '/api/import/start', '/api/import/cancel',
                         '/api/bookmarks/import', '/api/bookmarks/connect', '/api/bookmarks/sync',
-                        '/api/products/save', '/api/products/remove'):
+                        '/api/products/save', '/api/products/remove',
+                        '/api/local-library/choose', '/api/local-library/open'):
             return super().do_POST()
         if self.headers.get_content_type() != 'application/json':
             return self.json_response({'error': '需要JSON格式'}, 415)
@@ -685,6 +692,10 @@ class AppHandler(library_server.LibraryHandler):
                 result = self.server.import_manager.sync_chrome_bookmarks(authorize=True)
             elif path == '/api/bookmarks/sync':
                 result = self.server.import_manager.sync_chrome_bookmarks()
+            elif path == '/api/local-library/choose':
+                result = self.server.import_manager.local_library.choose(payload.get('kind'))
+            elif path == '/api/local-library/open':
+                result = self.server.import_manager.local_library.open(payload)
             elif path == '/api/products/save':
                 result = self.server.import_manager.save_product(payload)
             else:
@@ -717,6 +728,7 @@ def main():
         server.cloud_bridge = CloudBridge(os.environ.get('SHIJI_CLOUD_ORIGIN', ''))
     except ValueError as exc:
         parser.error(str(exc))
+    manager.local_library.set_import_entry(server.cloud_bridge.origin, server.server_port)
     server.group_store = library_server.GroupStore(manager.root / 'liked')
     server.trash_store = library_server.TrashStore(manager.root / 'liked')
     print(f'Shiji: http://127.0.0.1:{args.port}/import', flush=True)

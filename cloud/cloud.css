@@ -58,6 +58,38 @@ h2 { margin: 8px 0 0; font-size: 25px; letter-spacing: -.04em; line-height: 1.3;
 .setup-note a:hover { text-decoration: underline; }
 .footnote { margin: 17px 0 0; color: #92928a; font-size: 12px; line-height: 1.7; }
 
+.library-dialog { width: min(560px, calc(100vw - 28px)); max-height: min(750px, calc(100dvh - 28px)); padding: 27px; border: 1px solid #e5e1da; border-radius: 18px; background: #fdfcf9; color: #282823; box-shadow: 0 24px 80px #24211d38; overflow: auto; }
+.library-dialog::backdrop { background: #24231f70; }
+.dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.dialog-head h2 { margin-top: 5px; }
+.dialog-close { width: 32px; height: 32px; flex: none; border: 0; border-radius: 8px; background: #efede8; color: #5e5c55; font-size: 25px; line-height: 1; cursor: pointer; }
+.dialog-close:hover { background: #e8e4dd; }
+.dialog-intro { margin: 15px 0 22px; color: #6c6a63; font-size: 13px; line-height: 1.7; }
+.library-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0; margin: 0 0 17px; list-style: none; }
+.library-steps li { min-width: 0; padding: 8px 4px; border-radius: 7px; background: #f1efeb; color: #918d85; text-align: center; font-size: 11px; white-space: nowrap; }
+.library-steps li.current { background: #e83546; color: #fff; font-weight: 650; }
+.library-steps li.complete { background: #f9e8e9; color: #bd3541; }
+.library-status { min-height: 22px; margin: 0 0 8px; color: #4c6750; font-size: 13px; line-height: 1.5; }
+.library-status.error { color: #b63241; }
+.library-progress { display: block; width: 100%; height: 7px; margin: 0 0 18px; accent-color: #e83546; }
+.library-progress[hidden], .library-source[hidden], .library-preview[hidden], .library-result[hidden] { display: none; }
+.library-source, .library-preview { padding: 15px 16px; margin: 0 0 15px; border: 1px solid #e9e5dd; border-radius: 10px; background: #fff; }
+.library-source > span, .library-preview > span { display: block; color: #8d8981; font-size: 11px; }
+.library-source code, .library-preview strong { display: block; margin-top: 6px; color: #3e3d38; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+.library-source small, .library-preview p { display: block; margin: 8px 0 0; color: #817e76; font-size: 12px; line-height: 1.5; }
+.plain-action { margin-top: 10px; padding: 0; border: 0; background: none; color: #c83545; font-size: 12px; font-weight: 650; cursor: pointer; }
+.library-retry { margin: 0 0 13px; }
+.library-retry[hidden] { display: none; }
+.library-choice { display: flex; gap: 9px; margin: 0 0 15px; }
+.library-choice button, #confirm-library { padding: 11px 14px; border: 1px solid #dad5ce; border-radius: 8px; background: #fff; color: #34322d; font-size: 12px; font-weight: 650; cursor: pointer; }
+.library-choice button:hover, #confirm-library:hover { border-color: #c5a1a4; background: #fdf6f6; }
+.library-choice button:disabled, #confirm-library:disabled, .plain-action:disabled { opacity: .55; cursor: wait; }
+#confirm-library { margin-top: 13px; background: #e83546; border-color: #e83546; color: #fff; }
+#confirm-library:hover { background: #d8293c; color: #fff; }
+.library-result { display: inline-flex; padding: 11px 15px; margin: 1px 0 15px; border-radius: 8px; background: #292925; color: #fff; font-size: 13px; font-weight: 650; text-decoration: none; }
+.library-result:hover { background: #44443d; color: #fff; text-decoration: none; }
+.library-help { margin: 7px 0 0; color: #96928a; font-size: 11px; line-height: 1.6; }
+
 @media (max-width: 850px) {
   .shell { padding: 25px 26px 60px; }
   .content { margin-top: 66px; }
@@ -82,6 +114,8 @@ h2 { margin: 8px 0 0; font-size: 25px; letter-spacing: -.04em; line-height: 1.3;
   .setup-note { flex-wrap: wrap; gap: 11px; padding: 17px; }
   .setup-note p { flex-basis: calc(100% - 44px); }
   .setup-note a { margin-left: 43px; }
+  .library-dialog { padding: 20px; }
+  .library-choice { flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {
