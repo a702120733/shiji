@@ -126,7 +126,7 @@ async function fromPublicUI(request, file) {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname === '/' || ['/sw.js', '/bridge.js', '/cloud.css', '/favicon.svg'].includes(url.pathname)) return;
+  if (url.pathname === '/' || ['/sw.js', '/bridge.js', '/cloud.css', '/favicon.svg', '/platform-assets/xhs.png', '/platform-assets/douyin.png'].includes(url.pathname)) return;
   const publicFile = PUBLIC_UI.get(url.pathname);
   if (publicFile) { event.respondWith(fromPublicUI(event.request, publicFile)); return; }
   if (event.request.mode === 'navigate') {

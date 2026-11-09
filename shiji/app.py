@@ -527,6 +527,8 @@ class AppHandler(library_server.LibraryHandler):
             return self._asset('import.css', 'text/css; charset=utf-8')
         if path == '/import.js':
             return self._asset('import.js', 'text/javascript; charset=utf-8')
+        if path in ('/platform-assets/xhs.png', '/platform-assets/douyin.png'):
+            return self._asset(path.lstrip('/'), 'image/png')
         if path in ('/bookmarks.html', '/products.html'):
             return self._asset(path.lstrip('/'), 'text/html; charset=utf-8')
         if path == '/local.css':

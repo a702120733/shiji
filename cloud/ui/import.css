@@ -297,12 +297,16 @@ button.platform-card:hover,a.platform-card:hover {
   display:grid;
   place-items:center;
   border-radius:15px;
-  font-size:24px;
-  font-weight:700
+  overflow:hidden
+}
+.platform-icon img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain
 }
 .platform-icon-xhs {
-  background:#ffebed;
-  color:var(--red)
+  background:#ff2442
 }
 .platform-icon-chrome {
   background:conic-gradient(#e5b63a 0deg 120deg,#69a875 120deg 240deg,#e7645f 240deg 360deg);
@@ -316,8 +320,11 @@ button.platform-card:hover,a.platform-card:hover {
   background:#6da3d7
 }
 .platform-icon-douyin {
-  background:#ededea;
-  color:#777770
+  background:#000
+}
+.platform-icon-douyin img {
+  width:32px;
+  height:32px
 }
 .platform-card-copy {
   display:flex;

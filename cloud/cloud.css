@@ -35,11 +35,13 @@ h2 { margin: 8px 0 0; font-size: 25px; letter-spacing: -.04em; line-height: 1.3;
 .platform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .platform-card { appearance: none; display: flex; flex-direction: column; align-items: flex-start; text-align: left; min-height: 226px; padding: 25px 26px 23px; border: 1px solid #e7e4de; border-radius: 16px; background: #fff; color: inherit; box-shadow: 0 8px 28px rgba(25, 25, 20, .025); cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .platform-card:hover:not(:disabled) { border-color: #d8a4aa; box-shadow: 0 15px 35px rgba(49, 37, 35, .065); transform: translateY(-3px); }
-.platform-mark { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 12px; font-size: 22px; font-weight: 650; }
-.platform-mark.xhs { color: #fff; background: #e83546; }
+.platform-mark { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 12px; overflow: hidden; }
+.platform-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.platform-mark.xhs { background: #ff2442; }
 .platform-mark.chrome { position: relative; background: conic-gradient(#f5bc25 0 120deg, #36a56a 120deg 240deg, #ea5847 240deg); }
 .platform-mark.chrome span { width: 21px; height: 21px; border: 3px solid #fff; border-radius: 50%; background: #4b8ee0; }
-.platform-mark.douyin { color: #fff; background: #363638; font-size: 27px; }
+.platform-mark.douyin { background: #000; }
+.platform-mark.douyin img { width: 32px; height: 32px; }
 .platform-copy { display: flex; flex-direction: column; gap: 6px; margin-top: 24px; }
 .platform-copy strong { font-size: 20px; letter-spacing: -.035em; }
 .platform-copy small { color: #777770; font-size: 13px; line-height: 1.5; }
