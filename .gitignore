@@ -37,3 +37,5 @@ node_modules/
 **/shiji-counts.json
 **/render-status.json
 **/notes/
+.vercel/
+.env.local
